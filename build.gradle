@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'maven-publish'
+    id "org.sonarqube" version "4.4.1.3373"
+}
+
+group = "eu.nonstatic"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+def junitVersion = '5.10.2'
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.compilerArgs.add('-parameters')
+}
+
+// use JUnit 5 platform
+test {
+    testLogging.showStandardStreams = true
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
