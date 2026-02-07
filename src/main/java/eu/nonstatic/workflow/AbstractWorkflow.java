@@ -17,7 +17,7 @@ public abstract class AbstractWorkflow<S, L extends AbstractWorkflowLink<S, L>> 
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {
-    L firstStep = toWorkflowLink(start, (L)null);
+    L firstStep = toWorkflowLink(start, null);
     this.start = (firstStep.getState() == null) ? firstStep.getNext() : List.of(firstStep);
   }
 
@@ -42,7 +42,7 @@ public abstract class AbstractWorkflow<S, L extends AbstractWorkflowLink<S, L>> 
     return unmodifiableList(start);
   }
 
-  public Optional<L> peek(String state) {
+  public Optional<L> peek(S state) {
     return (state != null) ? Optional.ofNullable(chain.get(state)) : Optional.empty(); // chain may have a null key for workflows having several starts, but it's not associated to a state per se.
   }
 
