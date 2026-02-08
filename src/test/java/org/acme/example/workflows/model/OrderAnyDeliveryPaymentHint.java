@@ -4,14 +4,14 @@ import java.util.Optional;
 import org.acme.example.workflows.param.ItemState;
 import org.acme.example.workflows.param.OrderState;
 
-public interface OrderAnyDeliveryPaymentHint<L extends AbstractAcmeWorkflowLink<L>> extends OrderPaymentHint {
+public interface OrderAnyDeliveryPaymentHint<L extends AbstractAcmeWorkflowNode<L>> extends OrderPaymentHint {
   Optional<L> peek(String state);
 
   @Override
   default boolean isPaid(String state) {
     return !OrderState.CANCELLED_UNPAID.equals(state)
         && peek(state)
-        .map(link -> link.isAfter(OrderState.PAYMENT_PENDING))
+        .map(node -> node.isAfter(OrderState.PAYMENT_PENDING))
         .orElseThrow(() -> new IllegalArgumentException(state));
   }
 

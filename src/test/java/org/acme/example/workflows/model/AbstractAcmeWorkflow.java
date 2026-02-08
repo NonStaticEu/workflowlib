@@ -4,7 +4,7 @@ import eu.nonstatic.workflow.AbstractWorkflow;
 import eu.nonstatic.workflow.WorkflowStep;
 import java.util.Objects;
 
-public abstract class AbstractAcmeWorkflow<L extends AbstractAcmeWorkflowLink<L>> extends AbstractWorkflow<String, L> {
+public abstract class AbstractAcmeWorkflow<L extends AbstractAcmeWorkflowNode<L>> extends AbstractWorkflow<String, L> {
 
   private final String entityType;
   private final String deliveryMode;
@@ -25,7 +25,7 @@ public abstract class AbstractAcmeWorkflow<L extends AbstractAcmeWorkflowLink<L>
   }
 
   @Override
-  protected abstract L newLink(String state);
+  protected abstract L newNode(String state);
 
 
   @Override

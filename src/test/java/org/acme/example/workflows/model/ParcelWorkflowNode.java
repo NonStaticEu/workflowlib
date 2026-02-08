@@ -2,9 +2,9 @@ package org.acme.example.workflows.model;
 
 import org.acme.example.workflows.param.ParcelState;
 
-public class ParcelWorkflowLink extends AbstractAcmeWorkflowLink<ParcelWorkflowLink> {
+public class ParcelWorkflowNode extends AbstractAcmeWorkflowNode<ParcelWorkflowNode> {
 
-  ParcelWorkflowLink(String state) {
+  ParcelWorkflowNode(String state) {
     super(state);
   }
 

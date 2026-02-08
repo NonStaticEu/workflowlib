@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-class WorkflowLinkTest {
+class WorkflowNodeTest {
 
   TestWorkflow workflow = new TestWorkflow("test",
       new WorkflowStep<>("state1", List.of(
@@ -40,18 +40,18 @@ class WorkflowLinkTest {
 
   @Test
   void should_be_equal() {
-    assertTrue(workflow.peek("state1").get().isEqual("state1"));
-    assertTrue(workflow.peek("state2").get().isEqual("state2"));
-    assertTrue(workflow.peek("state3").get().isEqual("state3"));
-    assertTrue(workflow.peek("state4").get().isEqual("state4"));
-    assertTrue(workflow.peek("state5").get().isEqual("state5"));
-    assertTrue(workflow.peek("catch1").get().isEqual("catch1"));
-    assertTrue(workflow.peek("catch2").get().isEqual("catch2"));
+    assertTrue(workflow.peek("state1").get().isOn("state1"));
+    assertTrue(workflow.peek("state2").get().isOn("state2"));
+    assertTrue(workflow.peek("state3").get().isOn("state3"));
+    assertTrue(workflow.peek("state4").get().isOn("state4"));
+    assertTrue(workflow.peek("state5").get().isOn("state5"));
+    assertTrue(workflow.peek("catch1").get().isOn("catch1"));
+    assertTrue(workflow.peek("catch2").get().isOn("catch2"));
   }
 
   @Test
   void should_be_after() {
-    TestWorkflowLink state4 = workflow.peek("state4").get();
+    TestWorkflowNode state4 = workflow.peek("state4").get();
 
     assertTrue(state4.isAfter("state1"));
     assertTrue(state4.isAfter("state2"));
@@ -66,22 +66,22 @@ class WorkflowLinkTest {
 
   @Test
   void should_be_after_or_equal() {
-    TestWorkflowLink state4 = workflow.peek("state4").orElseThrow();
+    TestWorkflowNode state4 = workflow.peek("state4").orElseThrow();
 
-    assertTrue(state4.isAfterOrEqual("state1"));
-    assertTrue(state4.isAfterOrEqual("state2"));
-    assertTrue(state4.isAfterOrEqual("state3"));
+    assertTrue(state4.isAfterOrOn("state1"));
+    assertTrue(state4.isAfterOrOn("state2"));
+    assertTrue(state4.isAfterOrOn("state3"));
 
-    assertFalse(state4.isAfterOrEqual("catch2"));
-    assertFalse(state4.isAfterOrEqual("catch1"));
+    assertFalse(state4.isAfterOrOn("catch2"));
+    assertFalse(state4.isAfterOrOn("catch1"));
 
-    assertTrue(state4.isAfterOrEqual("state4"));
-    assertFalse(state4.isAfterOrEqual("state5"));
+    assertTrue(state4.isAfterOrOn("state4"));
+    assertFalse(state4.isAfterOrOn("state5"));
   }
 
   @Test
   void should_be_before() {
-    TestWorkflowLink state2 = workflow.peek("state2").orElseThrow();
+    TestWorkflowNode state2 = workflow.peek("state2").orElseThrow();
 
     assertTrue(state2.isBefore("catch2"));
     assertTrue(state2.isBefore("state3"));
@@ -96,17 +96,17 @@ class WorkflowLinkTest {
 
   @Test
   void should_be_before_or_equal() {
-    TestWorkflowLink state2 = workflow.peek("state2").orElseThrow();
+    TestWorkflowNode state2 = workflow.peek("state2").orElseThrow();
 
-    assertTrue(state2.isBeforeOrEqual("catch2"));
-    assertTrue(state2.isBeforeOrEqual("state3"));
-    assertTrue(state2.isBeforeOrEqual("state4"));
-    assertTrue(state2.isBeforeOrEqual("state5"));
+    assertTrue(state2.isBeforeOrOn("catch2"));
+    assertTrue(state2.isBeforeOrOn("state3"));
+    assertTrue(state2.isBeforeOrOn("state4"));
+    assertTrue(state2.isBeforeOrOn("state5"));
 
-    assertFalse(state2.isBeforeOrEqual("catch1"));
+    assertFalse(state2.isBeforeOrOn("catch1"));
 
-    assertTrue(state2.isBeforeOrEqual("state2"));
-    assertFalse(state2.isBeforeOrEqual("state1"));
+    assertTrue(state2.isBeforeOrOn("state2"));
+    assertFalse(state2.isBeforeOrOn("state1"));
   }
 
   @Test
@@ -136,12 +136,12 @@ class WorkflowLinkTest {
 
   @Test
   void should_compare_state() {
-    TestWorkflowLink state2 = workflow.peek("state2").get();
-    TestWorkflowLink state4 = workflow.peek("state4").get();
-    TestWorkflowLink state5 = workflow.peek("state5").get();
-    TestWorkflowLink state6 = workflow.peek("state6").get();
-    TestWorkflowLink catch1 = workflow.peek("catch1").get();
-    TestWorkflowLink catch2 = workflow.peek("catch2").get();
+    TestWorkflowNode state2 = workflow.peek("state2").get();
+    TestWorkflowNode state4 = workflow.peek("state4").get();
+    TestWorkflowNode state5 = workflow.peek("state5").get();
+    TestWorkflowNode state6 = workflow.peek("state6").get();
+    TestWorkflowNode catch1 = workflow.peek("catch1").get();
+    TestWorkflowNode catch2 = workflow.peek("catch2").get();
 
     assertEquals(0, state2.compareTo(state2));
     assertEquals(0, state4.compareTo(state4));
@@ -196,7 +196,7 @@ class WorkflowLinkTest {
     assertEquals("<null>", new WorkflowStep<>(null).toString());
     assertEquals("state42", new WorkflowStep<>("state42").toString());
 
-    assertEquals("<null>", new TestWorkflowLink(null).toString());
+    assertEquals("<null>", new TestWorkflowNode(null).toString());
     WorkflowPath<String> path = workflow
         .path("state1", "state5")
         .get();

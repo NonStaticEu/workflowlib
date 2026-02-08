@@ -1,5 +1,5 @@
 package eu.nonstatic.workflow;
 
-public interface NamedWorkflow<S, L extends WorkflowLink<S, L>> extends Workflow<S, L> {
+public interface NamedWorkflow<S, N extends WorkflowNode<S, N>> extends Workflow<S, N> {
   String getName();
 }

@@ -8,19 +8,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, L>> implements WorkflowLink<S, L> {
+public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, N>> implements WorkflowNode<S, N> {
 
   private static final int PREVIOUS_NEXT_DEFAULT_CAPACITY = 4;
 
-  protected final S state; // may be null only in the *first* link of the chain if the workflow starts with 2 different steps
-  protected final List<L> previous;
-  protected final List<L> next;
+  protected final S state; // may be null only in the *first* node of the chain if the workflow starts with 2 different steps
+  protected final List<N> previous;
+  protected final List<N> next;
 
-  protected AbstractWorkflowLink(S state) {
+  protected AbstractWorkflowNode(S state) {
     this(state, new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY), new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY));
   }
 
-  protected AbstractWorkflowLink(S state, List<L> previous, List<L> next) {
+  protected AbstractWorkflowNode(S state, List<N> previous, List<N> next) {
     this.state = state;
     this.previous = previous;
     this.next = next;
@@ -32,27 +32,27 @@ public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, 
   }
 
   @Override
-  public List<L> getPrevious() {
+  public List<N> getPrevious() {
     return unmodifiableList(previous);
   }
 
   @Override
-  public Optional<L> getPrevious(S state) {
-    return previous.stream().filter(link -> link.isEqual(state)).findAny();
+  public Optional<N> getPrevious(S state) {
+    return previous.stream().filter(node -> node.isOn(state)).findAny();
   }
 
   @Override
-  public List<L> getNext() {
+  public List<N> getNext() {
     return unmodifiableList(next);
   }
 
   @Override
-  public Optional<L> getNext(S state) {
-    return next.stream().filter(link -> link.isEqual(state)).findAny();
+  public Optional<N> getNext(S state) {
+    return next.stream().filter(node -> node.isOn(state)).findAny();
   }
 
   @Override
-  public boolean isEqual(S state) {
+  public boolean isOn(S state) {
     return this.state != null && this.state.equals(state);
   }
 
@@ -64,13 +64,13 @@ public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, 
   @Override
   public boolean isAfter(S state, Collection<S> visited) {
     return previous.stream()
-        .filter(link -> !visited.contains(link.state))
-        .anyMatch(link -> link.isEqual(state) || link.isAfter(state, concat(visited, link.state)));
+        .filter(node -> !visited.contains(node.state))
+        .anyMatch(node -> node.isOn(state) || node.isAfter(state, concat(visited, node.state)));
   }
 
   @Override
-  public boolean isAfterOrEqual(S state) {
-    return isEqual(state) || isAfter(state);
+  public boolean isAfterOrOn(S state) {
+    return isOn(state) || isAfter(state);
   }
 
   @Override
@@ -81,13 +81,13 @@ public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, 
   @Override
   public boolean isBefore(S state, Collection<S> visited) {
     return next.stream()
-        .filter(link -> !visited.contains(link.state))
-        .anyMatch(link -> link.isEqual(state) || link.isBefore(state, concat(visited, link.state)));
+        .filter(node -> !visited.contains(node.state))
+        .anyMatch(node -> node.isOn(state) || node.isBefore(state, concat(visited, node.state)));
   }
 
   @Override
-  public boolean isBeforeOrEqual(S state) {
-    return isEqual(state) || isBefore(state);
+  public boolean isBeforeOrOn(S state) {
+    return isOn(state) || isBefore(state);
   }
 
   @Override
@@ -117,14 +117,14 @@ public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, 
   /**
    * Caution when using, because comparing two different terminal states will generate an IllegalArgumentException
    */
-  public int compareTo(L otherLink) {
-    S otherState = otherLink.getState();
+  public int compareTo(N otherNode) {
+    S otherState = otherNode.getState();
 
-    if(isEqual(otherState)) {
+    if(isOn(otherState)) {
       return 0;
-    } else if (isTerminal() && otherLink.isTerminal()) {
+    } else if (isTerminal() && otherNode.isTerminal()) {
       throw new IllegalArgumentException("Cannot compare two terminal states: " + state + " vs " + otherState);
-    } else if(otherLink.isTerminal() || isBefore(otherState)) {
+    } else if(otherNode.isTerminal() || isBefore(otherState)) {
       return -1;
     } else if(isTerminal() || isAfter(otherState)) {
       return 1;
@@ -141,7 +141,7 @@ public abstract class AbstractWorkflowLink<S, L extends AbstractWorkflowLink<S, 
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    AbstractWorkflowLink<?,?> that = (AbstractWorkflowLink<?,?>) o;
+    AbstractWorkflowNode<?,?> that = (AbstractWorkflowNode<?,?>) o;
     return Objects.equals(state, that.state);
   }
 

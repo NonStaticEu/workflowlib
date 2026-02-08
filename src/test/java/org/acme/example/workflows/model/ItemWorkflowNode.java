@@ -2,9 +2,9 @@ package org.acme.example.workflows.model;
 
 import org.acme.example.workflows.param.ItemState;
 
-public class ItemWorkflowLink extends AbstractAcmeWorkflowLink<ItemWorkflowLink> {
+public class ItemWorkflowNode extends AbstractAcmeWorkflowNode<ItemWorkflowNode> {
 
-  ItemWorkflowLink(String state) {
+  ItemWorkflowNode(String state) {
     super(state);
   }
 

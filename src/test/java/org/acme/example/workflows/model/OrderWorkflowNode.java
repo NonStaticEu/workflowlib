@@ -2,9 +2,9 @@ package org.acme.example.workflows.model;
 
 import org.acme.example.workflows.param.OrderState;
 
-public class OrderWorkflowLink extends AbstractAcmeWorkflowLink<OrderWorkflowLink> {
+public class OrderWorkflowNode extends AbstractAcmeWorkflowNode<OrderWorkflowNode> {
 
-  OrderWorkflowLink(String state) {
+  OrderWorkflowNode(String state) {
     super(state);
   }
 

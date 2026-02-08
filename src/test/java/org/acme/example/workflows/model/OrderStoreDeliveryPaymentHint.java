@@ -1,18 +1,18 @@
 package org.acme.example.workflows.model;
 
-import eu.nonstatic.workflow.AbstractWorkflowLink;
+import eu.nonstatic.workflow.AbstractWorkflowNode;
 import java.util.Optional;
 import org.acme.example.workflows.param.ItemState;
 import org.acme.example.workflows.param.OrderState;
 
-public interface OrderStoreDeliveryPaymentHint<L extends AbstractWorkflowLink<String, L>> extends OrderPaymentHint {
+public interface OrderStoreDeliveryPaymentHint<L extends AbstractWorkflowNode<String, L>> extends OrderPaymentHint {
   Optional<L> peek(String state);
 
   @Override
   default boolean isPaid(String state) {
     return !OrderState.CANCELLED_UNPAID.equals(state)
         && peek(state)
-        .map(link -> link.isAfter(OrderState.COLLECTABLE))
+        .map(node -> node.isAfter(OrderState.COLLECTABLE))
         .orElseThrow(() -> new IllegalArgumentException(state));
   }
 

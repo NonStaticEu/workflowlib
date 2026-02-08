@@ -34,7 +34,7 @@ class WorkflowImplTest {
   }
 
   @Test
-  void should_get_link() {
+  void should_get_node() {
     assertTrue(createWorkflow().peek(null).isEmpty());
 
     assertNotNull(createWorkflow().peek("state1"));

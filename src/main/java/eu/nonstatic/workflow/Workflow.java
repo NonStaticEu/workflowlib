@@ -3,11 +3,11 @@ package eu.nonstatic.workflow;
 import java.util.List;
 import java.util.Optional;
 
-public interface Workflow<S, L extends WorkflowLink<S, L>> {
+public interface Workflow<S, N extends WorkflowNode<S, N>> {
 
-  List<L> getStart();
+  List<N> getStart();
 
-  Optional<L> peek(S state);
+  Optional<N> peek(S state);
 
   boolean exists(S state);
 
