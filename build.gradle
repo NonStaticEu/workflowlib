@@ -6,17 +6,17 @@ plugins {
 }
 
 group = "eu.nonstatic"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
 }
 
-def junitVersion = '5.10.2'
+def junitVersion = '5.14.2'
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
