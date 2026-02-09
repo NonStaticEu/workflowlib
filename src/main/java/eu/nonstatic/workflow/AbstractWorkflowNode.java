@@ -13,14 +13,14 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   private static final int PREVIOUS_NEXT_DEFAULT_CAPACITY = 4;
 
   protected final S state; // may be null only in the *first* node of the chain if the workflow starts with 2 different steps
-  protected final List<N> previous;
-  protected final List<N> next;
+  protected final List<WorkFlowTransition<S, N>> previous;
+  protected final List<WorkFlowTransition<S, N>> next;
 
   protected AbstractWorkflowNode(S state) {
     this(state, new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY), new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY));
   }
 
-  protected AbstractWorkflowNode(S state, List<N> previous, List<N> next) {
+  protected AbstractWorkflowNode(S state, List<WorkFlowTransition<S, N>> previous, List<WorkFlowTransition<S, N>> next) {
     this.state = state;
     this.previous = previous;
     this.next = next;
@@ -32,23 +32,23 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   }
 
   @Override
-  public List<N> getPrevious() {
+  public List<WorkFlowTransition<S, N>> getPrevious() {
     return unmodifiableList(previous);
   }
 
   @Override
-  public Optional<N> getPrevious(S state) {
-    return previous.stream().filter(node -> node.isOn(state)).findAny();
+  public Optional<WorkFlowTransition<S, N>> getPrevious(S state) {
+    return previous.stream().filter(trans -> trans.getNode().isOn(state)).findAny();
   }
 
   @Override
-  public List<N> getNext() {
-    return unmodifiableList(next);
+  public List<WorkFlowTransition<S, N>> getNext() {
+    return next;
   }
 
   @Override
-  public Optional<N> getNext(S state) {
-    return next.stream().filter(node -> node.isOn(state)).findAny();
+  public Optional<WorkFlowTransition<S, N>> getNext(S state) {
+    return next.stream().filter(trans -> trans.getNode().isOn(state)).findAny();
   }
 
   @Override
@@ -64,8 +64,11 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   @Override
   public boolean isAfter(S state, Collection<S> visited) {
     return previous.stream()
-        .filter(node -> !visited.contains(node.state))
-        .anyMatch(node -> node.isOn(state) || node.isAfter(state, concat(visited, node.state)));
+        .filter(trans -> !visited.contains(trans.getNode().state))
+        .anyMatch(trans -> {
+          N node = trans.getNode();
+          return node.isOn(state) || node.isAfter(state, concat(visited, node.state));
+        });
   }
 
   @Override
@@ -81,8 +84,11 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   @Override
   public boolean isBefore(S state, Collection<S> visited) {
     return next.stream()
-        .filter(node -> !visited.contains(node.state))
-        .anyMatch(node -> node.isOn(state) || node.isBefore(state, concat(visited, node.state)));
+        .filter(trans -> !visited.contains(trans.getNode().state))
+        .anyMatch(trans -> {
+          N node = trans.getNode();
+          return node.isOn(state) || node.isBefore(state, concat(visited, node.state));
+        });
   }
 
   @Override
@@ -92,8 +98,8 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
 
   @Override
   public boolean isTwoWay(S state) {
-    return getNext(state).flatMap(n -> n.getPrevious(this.state)).isPresent()
-        || getPrevious(state).flatMap(p -> p.getNext(this.state)).isPresent();
+    return getNext(state).flatMap(trans -> trans.getNode().getPrevious(this.state)).isPresent()
+        || getPrevious(state).flatMap(trans -> trans.getNode().getNext(this.state)).isPresent();
   }
 
   @Override

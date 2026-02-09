@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -178,8 +179,15 @@ class WorkflowNodeTest {
   void should_get_path() {
     WorkflowPath<String> path = workflow.path("state1", "catch2").get();
     assertEquals(2, path.size());
-    assertEquals("state2", path.iterator().next());
-    assertEquals("catch2", path.get(1));
+    Iterator<WorkflowLink<String>> it = path.iterator();
+
+    var t0 = it.next();
+    assertEquals("state1", t0.getFrom());
+    assertEquals("state2", t0.getTo());
+
+    var t1 = it.next();
+    assertEquals("state2", t1.getFrom());
+    assertEquals("catch2", t1.getTo());
 
     assertEquals(1, path.indexOf("catch2"));
 
@@ -201,8 +209,8 @@ class WorkflowNodeTest {
         .path("state1", "state5")
         .get();
     assertFalse(path.isEmpty());
-    for (String step : path) {
-      assertEquals(step, workflow.peek(step).get().toString());
+    for (WorkflowLink<String> link : path) {
+      assertEquals(link.getTo(), workflow.peek(link.getTo()).get().toString());
     }
   }
 }

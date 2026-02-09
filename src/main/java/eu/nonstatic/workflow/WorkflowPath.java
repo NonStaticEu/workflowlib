@@ -4,57 +4,116 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Instances of this class are meant to be immutable
  */
-public final class WorkflowPath<S> implements Iterable<S> {
+public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
 
-  private static final WorkflowPath<?> EMPTY = new WorkflowPath<>(0);
-  private final List<S> steps;
+  private final List<WorkflowLink<S>> links;
 
-  private WorkflowPath(int initialCapacity) {
-    this.steps = new ArrayList<>(initialCapacity);
+  private WorkflowPath(List<WorkflowLink<S>> links) {
+    this.links = Collections.unmodifiableList(links);
   }
 
-  public S get(int index) {
-    return steps.get(index);
+  public WorkflowLink<S> get(int index) {
+    return links.get(index);
+  }
+
+  public boolean contains(WorkflowLink<S> link) {
+    return links.contains(link);
   }
 
   public int indexOf(S state) {
-    return steps.indexOf(state);
+    int i = 0;
+    for (WorkflowLink<S> link : links) {
+      if (link.getTo().equals(state)) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
   }
 
   public boolean isEmpty() {
-    return steps.isEmpty();
+    return links.isEmpty();
   }
 
   public int size() {
-    return steps.size();
+    return links.size();
   }
 
   public boolean contains(S state) {
-    return steps.contains(state);
+    return links.stream().anyMatch(step -> step.getTo().equals(state));
+  }
+
+  public Stream<WorkflowLink<S>> stream() {
+    return links.stream();
   }
 
   @Override
-  public Iterator<S> iterator() {
-    return Collections.unmodifiableList(steps).iterator();
-  }
-
-  public static <S> WorkflowPath<S> empty() {
-    return (WorkflowPath<S>)EMPTY;
-  }
-
-  public WorkflowPath<S> prepend(S state) {
-    WorkflowPath<S> path = new WorkflowPath<>(1 + size());
-    path.steps.add(state);
-    path.steps.addAll(this.steps);
-    return path;
+  public Iterator<WorkflowLink<S>> iterator() {
+    return links.iterator();
   }
 
   @Override
   public String toString() {
-    return steps.toString();
+    return links.stream().map(WorkflowLink::getTo).collect(Collectors.toList()).toString();
+  }
+
+
+
+  final static class Builder<S> {
+
+    private final S from;
+    private final List<WorkflowNode<S, ?>> nodes;
+
+    Builder(S from) {
+      this(from, 0);
+    }
+
+    private Builder(S from, int initialCapacity) {
+      this.from = from;
+      this.nodes = new ArrayList<>(initialCapacity);
+    }
+
+    S getFrom() {
+      return from;
+    }
+
+    int size() {
+      return nodes.size();
+    }
+
+    boolean contains(S state) {
+      return nodes.stream().anyMatch(node -> node.getState().equals(state));
+    }
+
+    Builder<S> prepend(WorkflowNode<S, ?> node) {
+      Builder<S> path = new Builder<>(from, 1 + size());
+      path.nodes.add(node);
+      path.nodes.addAll(this.nodes);
+      return path;
+    }
+
+    WorkflowPath<S> build() {
+      var links = new ArrayList<WorkflowLink<S>>(nodes.size());
+      WorkflowNode<S, ?> prev = null;
+      for (WorkflowNode<S, ?> node : nodes) {
+        S to = node.getState();
+        WorkflowLink<S> link;
+        if(prev == null) {
+          link = new WorkflowLink<>(from, to, null);
+        } else {
+          WorkflowListener<S> listener = prev.getNext(to).map(WorkFlowTransition::getListener).orElse(null);
+          link = new WorkflowLink<>(prev.getState(), to, listener);
+        }
+        links.add(link);
+        prev = node;
+      }
+      return new WorkflowPath<>(links);
+    }
   }
 }

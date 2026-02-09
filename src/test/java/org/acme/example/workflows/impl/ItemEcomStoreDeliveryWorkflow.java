@@ -42,11 +42,6 @@ public final class ItemEcomStoreDeliveryWorkflow extends AbstractLineItemWorkflo
                                 new WorkflowStep<>(ItemState.PAYMENT_PENDING /* No need to add next steps, they are already above */)
                             ))
                         )),
-                        new WorkflowStep<>(ItemState.PREORDER, List.of(
-                            new WorkflowStep<>(ItemState.CANCELLED_UNPAID),
-                            new WorkflowStep<>(ItemState.RESERVED_WAREHOUSE_ORDERED /* No need to add next steps, they are already above */),
-                            new WorkflowStep<>(ItemState.RESERVED_WAREHOUSE_RECEIVED /* No need to add next steps, they are already above */)
-                        )),
                         new WorkflowStep<>(ItemState.RESERVED_WAREHOUSE_ORDERED /* No need to add next steps, they are already above */),
                         new WorkflowStep<>(ItemState.RESERVED_WAREHOUSE_ON_SHELF /* No need to add next steps, they are already above */)
                     ))

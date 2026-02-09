@@ -13,23 +13,25 @@ import java.util.stream.Collectors;
 public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> implements Workflow<S, N> {
 
   protected final List<N> start;
-  protected final HashMap<S, N> chain = new HashMap<>();
+  protected final HashMap<S, N> nodes = new HashMap<>();
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {
-    N firstStep = toWorkflowNode(start, null);
-    this.start = (firstStep.getState() == null) ? firstStep.getNext() : List.of(firstStep);
+    N firstNode = toWorkflowNode(start, null);
+    this.start = (firstNode.getState() == null)
+        ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toList())
+        : List.of(firstNode);
   }
 
-  private N toWorkflowNode(WorkflowStep<S> step, N previousStep) {
-    N node = chain.computeIfAbsent(step.getState(), this::newNode);
+  private N toWorkflowNode(WorkflowStep<S> step, N previousNode) {
+    N node = nodes.computeIfAbsent(step.getState(), this::newNode);
 
-    if (previousStep != null) {
-      node.previous.add(previousStep);
+    if (previousNode != null) {
+      node.previous.add(new WorkFlowTransition<>(previousNode, step.getListener()));
     }
 
     for (WorkflowStep<S> nextStep : step.getNext()) {
-      node.next.add(toWorkflowNode(nextStep, node));
+      node.next.add(new WorkFlowTransition<>(toWorkflowNode(nextStep, node), nextStep.getListener()));
     }
 
     return node;
@@ -43,7 +45,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
   }
 
   public Optional<N> peek(S state) {
-    return (state != null) ? Optional.ofNullable(chain.get(state)) : Optional.empty(); // chain may have a null key for workflows having several starts, but it's not associated to a state per se.
+    return (state != null) ? Optional.ofNullable(nodes.get(state)) : Optional.empty(); // chain may have a null key for workflows having several starts, but it's not associated to a state per se.
   }
 
   @Override
@@ -55,22 +57,23 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     if(!exists(from)) {
       throw new NoSuchElementException("Unknown from value: " + from);
     }
-    N wto = peek(to).orElseThrow(() -> new NoSuchElementException("Unknown to value: " + to));
-    return path(from, wto, WorkflowPath.empty())
+    N nodeTo = peek(to).orElseThrow(() -> new NoSuchElementException("Unknown to value: " + to));
+    return buildPath(nodeTo, new WorkflowPath.Builder<>(from))
         .stream()
-        .min(Comparator.comparingInt(WorkflowPath::size));
+        .min(Comparator.comparingInt(WorkflowPath.Builder::size))
+        .map(WorkflowPath.Builder::build);
   }
 
-  private static <S, K extends WorkflowNode<S, K>> List<WorkflowPath<S>> path(S from, K to, WorkflowPath<S> existingPath) {
-    if(to.isOn(from)) {
-      return List.of(existingPath);
+  private static <S, N extends WorkflowNode<S, N>> List<WorkflowPath.Builder<S>> buildPath(N nodeTo, WorkflowPath.Builder<S> partialPath) {
+    if(nodeTo.isOn(partialPath.getFrom())) {
+      return List.of(partialPath);
     }
 
-    WorkflowPath<S> increasedPath = existingPath.prepend(to.getState());
-    return to.getPrevious()
+    WorkflowPath.Builder<S> increasedPath = partialPath.prepend(nodeTo);
+    return nodeTo.getPrevious()
         .stream()
-        .filter(previous -> !existingPath.contains(previous.getState())) // there shouldn't be loops but you never know
-        .flatMap(previous -> path(from, previous, increasedPath).stream())
+        .filter(previous -> !partialPath.contains(previous.getNode().getState())) // there shouldn't be loops but you never know CAUTION contains
+        .flatMap(previous -> buildPath(previous.getNode(), increasedPath).stream())
         .collect(Collectors.toList());
   }
 
@@ -88,7 +91,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(start);
+    return Objects.hashCode(start); // No need to add the nodes, they are contained in the start node
   }
 
   @Override

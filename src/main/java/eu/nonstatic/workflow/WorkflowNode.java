@@ -11,11 +11,11 @@ public interface WorkflowNode<S, N extends WorkflowNode<S, N>> extends Comparabl
 
   S getState();
 
-  List<N> getPrevious();
-  Optional<N> getPrevious(S state);
+  List<WorkFlowTransition<S, N>> getPrevious();
+  Optional<WorkFlowTransition<S, N>> getPrevious(S state);
 
-  List<N> getNext();
-  Optional<N> getNext(S state);
+  List<WorkFlowTransition<S, N>> getNext();
+  Optional<WorkFlowTransition<S, N>> getNext(S state);
 
   boolean isOn(S state);
 
