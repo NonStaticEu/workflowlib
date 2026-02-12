@@ -53,7 +53,7 @@ class WorkflowNodeTest {
 
   @Test
   void should_be_after() {
-    TestWorkflowNode state4 = workflow.peek("state4").get();
+    var state4 = workflow.peek("state4").get();
 
     assertTrue(state4.isAfter("state1"));
     assertTrue(state4.isAfter("state2"));
@@ -68,7 +68,7 @@ class WorkflowNodeTest {
 
   @Test
   void should_be_after_or_equal() {
-    TestWorkflowNode state4 = workflow.peek("state4").orElseThrow();
+    var state4 = workflow.peek("state4").orElseThrow();
 
     assertTrue(state4.isAfterOrOn("state1"));
     assertTrue(state4.isAfterOrOn("state2"));
@@ -83,7 +83,7 @@ class WorkflowNodeTest {
 
   @Test
   void should_be_before() {
-    TestWorkflowNode state2 = workflow.peek("state2").orElseThrow();
+    var state2 = workflow.peek("state2").orElseThrow();
 
     assertTrue(state2.isBefore("catch2"));
     assertTrue(state2.isBefore("state3"));
@@ -98,7 +98,7 @@ class WorkflowNodeTest {
 
   @Test
   void should_be_before_or_equal() {
-    TestWorkflowNode state2 = workflow.peek("state2").orElseThrow();
+    var state2 = workflow.peek("state2").orElseThrow();
 
     assertTrue(state2.isBeforeOrOn("catch2"));
     assertTrue(state2.isBeforeOrOn("state3"));
@@ -138,12 +138,12 @@ class WorkflowNodeTest {
 
   @Test
   void should_compare_state() {
-    TestWorkflowNode state2 = workflow.peek("state2").get();
-    TestWorkflowNode state4 = workflow.peek("state4").get();
-    TestWorkflowNode state5 = workflow.peek("state5").get();
-    TestWorkflowNode state6 = workflow.peek("state6").get();
-    TestWorkflowNode catch1 = workflow.peek("catch1").get();
-    TestWorkflowNode catch2 = workflow.peek("catch2").get();
+    var state2 = workflow.peek("state2").get();
+    var state4 = workflow.peek("state4").get();
+    var state5 = workflow.peek("state5").get();
+    var state6 = workflow.peek("state6").get();
+    var catch1 = workflow.peek("catch1").get();
+    var catch2 = workflow.peek("catch2").get();
 
     assertEquals(0, state2.compareTo(state2));
     assertEquals(0, state4.compareTo(state4));
@@ -205,7 +205,7 @@ class WorkflowNodeTest {
     assertEquals("<null>", new WorkflowStep<>(null).toString());
     assertEquals("state42", new WorkflowStep<>("state42").toString());
 
-    assertEquals("<null>", new TestWorkflowNode(null).toString());
+    assertEquals("<null>", new StandardWorkflowNode<>(null).toString());
     WorkflowPath<String> path = workflow
         .path("state1", "state5")
         .get();

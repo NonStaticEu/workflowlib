@@ -40,15 +40,6 @@ public final class WorkflowsSupplier extends AbstractWorkflowSupplier<AbstractAc
         new ParcelEcomClickAndCollectWorkflow());
   }
 
-  @Override
-  protected String toKey(AbstractAcmeWorkflow workflow) {
-    return toKey(workflow.getEntityType(), workflow.getDeliveryMode());
-  }
-
-  private static String toKey(String entityType, String deliveryMode) {
-    return entityType + '-' + deliveryMode;
-  }
-
   public Optional<AbstractAcmeWorkflow> get(String entityType, String deliveryMode) {
     return EntityType.Safe.get(entityType).flatMap(safeType -> get(safeType, deliveryMode));
   }
@@ -58,7 +49,7 @@ public final class WorkflowsSupplier extends AbstractWorkflowSupplier<AbstractAc
   }
 
   public <W extends AbstractAcmeWorkflow> Optional<W> get(EntityType.Safe<W> entityType, String deliveryMode) {
-    return Optional.ofNullable((W)get(toKey(entityType.name(), deliveryMode)));
+    return Optional.ofNullable((W)get(AbstractAcmeWorkflow.toKey(entityType.name(), deliveryMode)));
   }
 
   public <W extends AbstractAcmeWorkflow> Optional<W> get(EntityType.Safe<W> entityType, String salesChannel, boolean storeDelivery, boolean expressDelivery) {

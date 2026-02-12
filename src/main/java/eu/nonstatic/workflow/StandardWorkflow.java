@@ -3,31 +3,44 @@ package eu.nonstatic.workflow;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class StandardWorkflow extends AbstractWorkflow<Serializable, StandardWorkflowNode> {
+public class StandardWorkflow<S> extends AbstractWorkflow<S, StandardWorkflowNode<S>> {
 
-  private final Serializable id;
-  private final WorkflowMetas metas;
+  protected final Serializable id;
+  protected final WorkflowMetas metas;
 
-  protected StandardWorkflow(Serializable id, WorkflowMetas metas, WorkflowStep<Serializable> start) {
+  protected StandardWorkflow(Serializable id, WorkflowMetas metas, WorkflowStep<S> start) {
     super(start);
-    this.id = id;
+    this.id = Objects.requireNonNull(id);
     this.metas = metas;
   }
 
-  @Override
-  protected StandardWorkflowNode newNode(Serializable state) {
-    return new StandardWorkflowNode(state);
+  public Serializable getId() {
+    return id;
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public WorkflowMetas getMetas() {
+    return metas;
+  }
+
+  @Override
+  public Object getKey() {
+    return getId();
+  }
+
+  @Override
+  protected StandardWorkflowNode<S> newNode(S state) {
+    return new StandardWorkflowNode<>(state);
+  }
+
+  public static <T> Builder<T> builder() {
+    return new Builder<>();
   }
 
   @Override
   public boolean equals(Object o) {
     return super.equals(o)
-        && Objects.equals(id, ((StandardWorkflow)o).id)
-        && Objects.equals(metas, ((StandardWorkflow)o).metas);
+        && Objects.equals(id, ((StandardWorkflow<?>)o).id)
+        && Objects.equals(metas, ((StandardWorkflow<?>)o).metas);
   }
 
   @Override
@@ -36,28 +49,28 @@ public class StandardWorkflow extends AbstractWorkflow<Serializable, StandardWor
   }
 
 
-  public static final class Builder {
+  public static final class Builder<S> {
     private Serializable id;
     private WorkflowMetas metas;
-    private WorkflowStep<Serializable> start;
+    private WorkflowStep<S> start;
 
-    public Builder id(Serializable id) {
+    public Builder<S> id(Serializable id) {
       this.id = id;
       return this;
     }
 
-    public Builder metas(WorkflowMetas metas) {
+    public Builder<S> metas(WorkflowMetas metas) {
       this.metas = metas;
       return this;
     }
 
-    public Builder start(WorkflowStep<Serializable> start) {
+    public Builder<S> start(WorkflowStep<S> start) {
       this.start = start;
       return this;
     }
 
-    public StandardWorkflow build() {
-      return new StandardWorkflow(id, metas, start);
+    public StandardWorkflow<S> build() {
+      return new StandardWorkflow<>(id, metas, start);
     }
   }
 }

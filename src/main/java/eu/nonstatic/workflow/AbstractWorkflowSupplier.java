@@ -19,10 +19,8 @@ public abstract class AbstractWorkflowSupplier<W extends Workflow> {
   }
 
   protected void add(W workflow) {
-    workflows.putIfAbsent(toKey(workflow), workflow);
+    workflows.putIfAbsent(workflow.getKey(), workflow);
   }
-
-  protected abstract Object toKey(W workflow);
 
   protected W get(String key) {
     return workflows.get(key);

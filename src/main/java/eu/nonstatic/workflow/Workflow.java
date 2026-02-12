@@ -14,6 +14,7 @@ public interface Workflow<S, N extends WorkflowNode<S, N>> {
 
   Optional<WorkflowPath<S>> path(S from, S to);
 
+  Object getKey();
 
   static StandardWorkflow.Builder builder() {
     return StandardWorkflow.builder();

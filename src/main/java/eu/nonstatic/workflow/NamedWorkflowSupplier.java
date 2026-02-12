@@ -9,9 +9,4 @@ public class NamedWorkflowSupplier<W extends NamedWorkflow> extends AbstractWork
   public NamedWorkflowSupplier(Iterable<W> workflows) {
     super(workflows);
   }
-
-  @Override
-  protected String toKey(W workflow) {
-    return workflow.getName();
-  }
 }

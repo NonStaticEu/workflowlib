@@ -1,10 +1,8 @@
 package eu.nonstatic.workflow;
 
-import java.io.Serializable;
+public class StandardWorkflowNode<S> extends AbstractWorkflowNode<S, StandardWorkflowNode<S>> {
 
-public class StandardWorkflowNode extends AbstractWorkflowNode<Serializable, StandardWorkflowNode> {
-
-  protected StandardWorkflowNode(Serializable state) {
+  protected StandardWorkflowNode(S state) {
     super(state);
   }
 }

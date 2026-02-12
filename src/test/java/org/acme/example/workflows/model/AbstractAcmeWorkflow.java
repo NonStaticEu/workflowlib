@@ -16,6 +16,15 @@ public abstract class AbstractAcmeWorkflow<L extends AbstractAcmeWorkflowNode<L>
     this.deliveryMode = deliveryMode;
   }
 
+  @Override
+  public Object getKey() {
+    return toKey(entityType, deliveryMode);
+  }
+
+  public static String toKey(String entityType, String deliveryMode) {
+    return entityType + '-' + deliveryMode;
+  }
+
   public String getEntityType() {
     return entityType;
   }
