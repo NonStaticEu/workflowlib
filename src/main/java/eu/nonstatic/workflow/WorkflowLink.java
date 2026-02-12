@@ -26,6 +26,12 @@ public class WorkflowLink<S> {
     return listener;
   }
 
+  public void fire(TransitionContext context) {
+    if(listener != null) {
+      listener.invoke(from, to, context);
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) {

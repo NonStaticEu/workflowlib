@@ -46,7 +46,7 @@ public class StateMachine<S, N extends WorkflowNode<S, N>> {
     var results = new ArrayList<TransitionResult<S>>(path.size());
     for (WorkflowLink<S> link : path) {
       try {
-        link.getListener().invoke(link.getFrom(), link.getTo(), context);
+        link.fire(context);
         results.add(new TransitionResult<>(link));
       } catch(Exception e) {
         results.add(new TransitionResult<>(link, e));
