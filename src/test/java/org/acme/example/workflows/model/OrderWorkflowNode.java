@@ -9,9 +9,9 @@ public class OrderWorkflowNode extends AbstractAcmeWorkflowNode<OrderWorkflowNod
   }
 
   public boolean isWithdrawing() {
-    return OrderState.isWithdrawing(state);
+    return OrderState.isWithdrawing(getState());
   }
   public boolean isWithdrawn() {
-    return OrderState.isWithdrawn(state);
+    return OrderState.isWithdrawn(getState());
   }
 }

@@ -1,19 +1,17 @@
 package eu.nonstatic.workflow;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class StandardWorkflow extends AbstractWorkflow<Serializable, StandardWorkflowNode> {
 
   private final Serializable id;
-  private final Map<String, Object> metas;
+  private final WorkflowMetas metas;
 
-  protected StandardWorkflow(Serializable id, Map<String, Object> metas, WorkflowStep<Serializable> start) {
+  protected StandardWorkflow(Serializable id, WorkflowMetas metas, WorkflowStep<Serializable> start) {
     super(start);
     this.id = id;
-    this.metas = new LinkedHashMap<>(metas);
+    this.metas = metas;
   }
 
   @Override
@@ -40,7 +38,7 @@ public class StandardWorkflow extends AbstractWorkflow<Serializable, StandardWor
 
   public static final class Builder {
     private Serializable id;
-    private Map<String, Object> metas;
+    private WorkflowMetas metas;
     private WorkflowStep<Serializable> start;
 
     public Builder id(Serializable id) {
@@ -48,7 +46,7 @@ public class StandardWorkflow extends AbstractWorkflow<Serializable, StandardWor
       return this;
     }
 
-    public Builder metas(Map<String, Object> metas) {
+    public Builder metas(WorkflowMetas metas) {
       this.metas = metas;
       return this;
     }

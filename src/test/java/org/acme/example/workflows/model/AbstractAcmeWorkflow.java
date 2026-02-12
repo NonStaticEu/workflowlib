@@ -42,6 +42,6 @@ public abstract class AbstractAcmeWorkflow<L extends AbstractAcmeWorkflowNode<L>
 
   @Override
   public int hashCode() {
-    return Objects.hash(entityType, deliveryMode, start);
+    return Objects.hash(entityType, deliveryMode, getStart());
   }
 }

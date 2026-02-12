@@ -9,9 +9,9 @@ public class ParcelWorkflowNode extends AbstractAcmeWorkflowNode<ParcelWorkflowN
   }
 
   public boolean isWithdrawing() {
-    return ParcelState.isWithdrawing(state);
+    return ParcelState.isWithdrawing(getState());
   }
   public boolean isWithdrawn() {
-    return ParcelState.isWithdrawn(state);
+    return ParcelState.isWithdrawn(getState());
   }
 }

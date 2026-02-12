@@ -35,11 +35,11 @@ public class StateMachine<S, N extends WorkflowNode<S, N>> {
     return state;
   }
 
-  public <C> TransitionReport<S> transition(S newState, C context) throws StateMachineException {
+  public TransitionReport<S> transition(S newState, TransitionContext context) throws StateMachineException {
     return transition(newState, context, false);
   }
 
-  public <C> TransitionReport<S> transition(S newState, C context, boolean lenient) throws StateMachineException {
+  public TransitionReport<S> transition(S newState, TransitionContext context, boolean lenient) throws StateMachineException {
     WorkflowPath<S> path = workflow.path(state, newState)
         .orElseThrow(() -> new NoSuchElementException("Cannot move from " + state + " to " + newState));
 

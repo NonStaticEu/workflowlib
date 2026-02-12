@@ -12,9 +12,9 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
 
   private static final int PREVIOUS_NEXT_DEFAULT_CAPACITY = 4;
 
-  protected final S state; // may be null only in the *first* node of the chain if the workflow starts with 2 different steps
-  protected final List<WorkFlowTransition<S, N>> previous;
-  protected final List<WorkFlowTransition<S, N>> next;
+  final S state; // may be null only in the *first* node of the chain if the workflow starts with 2 different steps
+  final List<WorkFlowTransition<S, N>> previous;
+  final List<WorkFlowTransition<S, N>> next;
 
   protected AbstractWorkflowNode(S state) {
     this(state, new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY), new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY));

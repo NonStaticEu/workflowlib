@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> implements Workflow<S, N> {
 
-  protected final List<N> start;
-  protected final HashMap<S, N> nodes = new HashMap<>();
+  private final List<N> start;
+  private final HashMap<S, N> nodes = new HashMap<>();
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {

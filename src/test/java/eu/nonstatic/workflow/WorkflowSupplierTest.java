@@ -1,8 +1,10 @@
 package eu.nonstatic.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +17,7 @@ import org.acme.example.workflows.model.AbstractLineItemWorkflow;
 import org.acme.example.workflows.model.AbstractOrderWorkflow;
 import org.acme.example.workflows.param.DeliveryMode;
 import org.acme.example.workflows.param.EntityType;
+import org.acme.example.workflows.param.OrderState;
 import org.acme.example.workflows.param.SalesChannel;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +63,13 @@ class WorkflowSupplierTest {
   void should_get_from_params_safe() {
     AbstractLineItemWorkflow workflow = supplier.get(EntityType.Safe.ITEM, SalesChannel.ECOM, true, true).get();
     assertEquals(new ItemEcomClickAndCollectWorkflow(), workflow);
+  }
+
+  @Test
+  void should_have_custom_nodes() {
+    AbstractOrderWorkflow workflow = supplier.get(EntityType.Safe.ORDER, DeliveryMode.ECOM_ORDER_STORE_DELIVERY).get();
+    assertFalse(workflow.peek(OrderState.AVAILABLE).orElseThrow().isWithdrawing());
+    assertTrue(workflow.peek(OrderState.CANCELLED_PAID).orElseThrow().isWithdrawing());
   }
 
   @Test
