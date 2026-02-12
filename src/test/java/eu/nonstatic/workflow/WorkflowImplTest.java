@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class WorkflowImplTest {
 
-  private TestWorkflow createWorkflow() {
+  private TestWorkflow createWorkflowWithConstructor() {
     return new TestWorkflow("test",
         new WorkflowStep<>(null, List.of(
             new WorkflowStep<>("state1"),
@@ -22,12 +22,24 @@ class WorkflowImplTest {
     );
   }
 
+  private TestWorkflow createWorkflowWithBuilder() {
+    WorkflowStep<String> steps = WorkflowStep.<String>builder(null)
+        .next("state1")
+        .next(WorkflowStep.builder("state2")
+            .next("catch1")
+            .next("state3")
+            .build()
+        ).build();
+    return new TestWorkflow("test", steps);
+  }
+
   @Test
   void should_be_equal() {
-    TestWorkflow workflow = createWorkflow();
+    TestWorkflow workflow = createWorkflowWithConstructor();
 
     assertEquals(workflow, workflow);
-    assertEquals(workflow, createWorkflow());
+    assertEquals(workflow, createWorkflowWithConstructor());
+    assertEquals(workflow, createWorkflowWithBuilder());
 
     assertNotEquals(workflow, new Object());
     assertNotEquals(null, workflow);
@@ -35,11 +47,11 @@ class WorkflowImplTest {
 
   @Test
   void should_get_node() {
-    assertTrue(createWorkflow().peek(null).isEmpty());
+    assertTrue(createWorkflowWithConstructor().peek(null).isEmpty());
 
-    assertNotNull(createWorkflow().peek("state1"));
-    assertNotNull(createWorkflow().peek("state2"));
-    assertNotNull(createWorkflow().peek("state3"));
-    assertNotNull(createWorkflow().peek("catch1"));
+    assertNotNull(createWorkflowWithConstructor().peek("state1"));
+    assertNotNull(createWorkflowWithConstructor().peek("state2"));
+    assertNotNull(createWorkflowWithConstructor().peek("state3"));
+    assertNotNull(createWorkflowWithConstructor().peek("catch1"));
   }
 }

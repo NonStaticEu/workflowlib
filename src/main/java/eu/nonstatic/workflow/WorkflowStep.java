@@ -2,7 +2,9 @@ package eu.nonstatic.workflow;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class WorkflowStep<S> {
 
@@ -40,6 +42,10 @@ public class WorkflowStep<S> {
     this.next = unmodifiableList(next);
   }
 
+  public static <S> Builder<S> builder(S state) {
+    return new Builder<>(state);
+  }
+
   public S getState() {
     return state;
   }
@@ -56,4 +62,39 @@ public class WorkflowStep<S> {
   public String toString() {
     return state != null ? state.toString() : "<null>";
   }
+
+
+
+  public static final class Builder<S> {
+    private final S state;
+    private WorkflowListener<S> listener;
+    private final List<WorkflowStep<S>> next = new LinkedList<>();
+
+    private Builder(S state) {
+      this.state = state;
+    }
+
+    public Builder<S> listener(WorkflowListener<S> listener) {
+      this.listener = listener;
+      return this;
+    }
+
+    public Builder<S> next(S state) {
+      return next(state, null);
+    }
+
+    public Builder<S> next(S state, WorkflowListener<S> listener) {
+      return next(new WorkflowStep<>(state, listener));
+    }
+
+    public Builder<S> next(WorkflowStep<S> next) {
+      this.next.add(Objects.requireNonNull(next));
+      return this;
+    }
+
+    public WorkflowStep<S> build() {
+      return new WorkflowStep<>(state, listener, next);
+    }
+  }
+
 }

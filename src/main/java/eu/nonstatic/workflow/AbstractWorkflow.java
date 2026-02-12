@@ -17,13 +17,17 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {
-    N firstNode = toWorkflowNode(start, null);
+    N firstNode = toNode(0, start, null);
     this.start = (firstNode.getState() == null)
         ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toList())
         : List.of(firstNode);
   }
 
-  private N toWorkflowNode(WorkflowStep<S> step, N previousNode) {
+  private N toNode(int level, WorkflowStep<S> step, N previousNode) {
+    if(step.getState() == null && level != 0) {
+      throw new IllegalArgumentException("Only the first step may have a null state.");
+    }
+
     N node = nodes.computeIfAbsent(step.getState(), this::newNode);
 
     if (previousNode != null) {
@@ -31,7 +35,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     }
 
     for (WorkflowStep<S> nextStep : step.getNext()) {
-      node.next.add(new WorkFlowTransition<>(toWorkflowNode(nextStep, node), nextStep.getListener()));
+      node.next.add(new WorkFlowTransition<>(toNode(level+1, nextStep, node), nextStep.getListener()));
     }
 
     return node;

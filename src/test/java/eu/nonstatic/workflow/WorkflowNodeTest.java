@@ -1,5 +1,6 @@
 package eu.nonstatic.workflow;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -212,5 +213,26 @@ class WorkflowNodeTest {
     for (WorkflowLink<String> link : path) {
       assertEquals(link.getTo(), workflow.peek(link.getTo()).get().toString());
     }
+  }
+
+  @Test
+  void should_accept_null_start() {
+    WorkflowStep<String> steps = WorkflowStep.<String>builder(null)
+        .next("state1")
+        .next("state2")
+        .build();
+
+    assertDoesNotThrow(() -> new TestWorkflow("test", steps));
+  }
+
+  @Test
+  void should_not_accept_null_next() {
+    WorkflowStep<String> steps = WorkflowStep.builder("state1")
+        .next("state2")
+        .next((String) null)
+        .next("state4")
+        .build();
+
+    assertThrows(IllegalArgumentException.class, () -> new TestWorkflow("test", steps));
   }
 }
