@@ -1,7 +1,5 @@
 package eu.nonstatic.workflow;
 
-import static java.util.Collections.unmodifiableList;
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +17,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
   protected AbstractWorkflow(WorkflowStep<S> start) {
     N firstNode = toNode(0, start, null);
     this.start = (firstNode.getState() == null)
-        ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toList())
+        ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toUnmodifiableList())
         : List.of(firstNode);
   }
 
@@ -45,7 +43,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
   @Override
   public List<N> getStart() {
-    return unmodifiableList(start);
+    return start; // already unmodifiable as per constructor
   }
 
   public Optional<N> peek(S state) {

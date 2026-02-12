@@ -1,7 +1,6 @@
 package eu.nonstatic.workflow;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
   private final List<WorkflowLink<S>> links;
 
   private WorkflowPath(List<WorkflowLink<S>> links) {
-    this.links = Collections.unmodifiableList(links);
+    this.links = List.copyOf(links);
   }
 
   public WorkflowLink<S> get(int index) {
@@ -65,7 +64,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
 
 
 
-  final static class Builder<S> {
+  static final class Builder<S> {
 
     private final S from;
     private final List<WorkflowNode<S, ?>> nodes;

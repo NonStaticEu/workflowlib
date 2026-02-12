@@ -43,7 +43,7 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
 
   @Override
   public List<WorkFlowTransition<S, N>> getNext() {
-    return next;
+    return unmodifiableList(next);
   }
 
   @Override

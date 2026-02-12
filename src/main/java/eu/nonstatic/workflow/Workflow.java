@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-//TODO fluent builder
 public interface Workflow<S, N extends WorkflowNode<S, N>> {
 
   List<N> getStart();
@@ -14,6 +13,11 @@ public interface Workflow<S, N extends WorkflowNode<S, N>> {
   boolean exists(S state);
 
   Optional<WorkflowPath<S>> path(S from, S to);
+
+
+  static StandardWorkflow.Builder builder() {
+    return StandardWorkflow.builder();
+  }
 
   default StateMachine<S, N> toMachine(Serializable id, S state) {
     return new StateMachine<>(id, this, state);

@@ -1,7 +1,5 @@
 package eu.nonstatic.workflow;
 
-import static java.util.Collections.unmodifiableList;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +37,7 @@ public class WorkflowStep<S> {
     }
     this.state = state;
     this.listener = listener;
-    this.next = unmodifiableList(next);
+    this.next = List.copyOf(next);
   }
 
   public static <S> Builder<S> builder(S state) {
