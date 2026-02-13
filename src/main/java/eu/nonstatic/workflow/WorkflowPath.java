@@ -99,16 +99,13 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
 
     WorkflowPath<S> build() {
       var links = new ArrayList<WorkflowLink<S>>(nodes.size());
+
       WorkflowNode<S, ?> prev = null;
       for (WorkflowNode<S, ?> node : nodes) {
-        S to = node.getState();
-        WorkflowLink<S> link;
-        if(prev == null) {
-          link = new WorkflowLink<>(from, to, null);
-        } else {
-          WorkflowListener<S> listener = prev.getNext(to).map(WorkFlowTransition::getListener).orElse(null);
-          link = new WorkflowLink<>(prev.getState(), to, listener);
-        }
+        S linkFrom = (prev == null) ? this.from : prev.getState();
+        S linkTo = node.getState();
+        WorkflowListener<S> listener = node.getPrevious(linkFrom).map(WorkFlowTransition::getListener).orElse(null);
+        WorkflowLink<S> link = new WorkflowLink<>(linkFrom, linkTo, listener);
         links.add(link);
         prev = node;
       }

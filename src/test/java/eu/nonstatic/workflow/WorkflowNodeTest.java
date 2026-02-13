@@ -3,6 +3,7 @@ package eu.nonstatic.workflow;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.Test;
 
 class WorkflowNodeTest {
 
+  WorkflowListener<String> listener = (from, to, context) -> System.out.println("Hello World");
+
   TestWorkflow workflow = new TestWorkflow("test",
       new WorkflowStep<>("state1", List.of(
           new WorkflowStep<>("catch1"),
@@ -22,7 +25,7 @@ class WorkflowNodeTest {
               new WorkflowStep<>("catch1")
           )),
           new WorkflowStep<>("state2", List.of(
-              new WorkflowStep<>("catch2"),
+              new WorkflowStep<>("catch2", listener),
               new WorkflowStep<>("state3", List.of(
                   new WorkflowStep<>("state4", List.of(
                       new WorkflowStep<>("catch2"),
@@ -185,10 +188,12 @@ class WorkflowNodeTest {
     var t0 = it.next();
     assertEquals("state1", t0.getFrom());
     assertEquals("state2", t0.getTo());
+    assertNull(t0.getListener());
 
     var t1 = it.next();
     assertEquals("state2", t1.getFrom());
     assertEquals("catch2", t1.getTo());
+    assertEquals(listener, t1.getListener());
 
     assertEquals(1, path.indexOf("catch2"));
 
