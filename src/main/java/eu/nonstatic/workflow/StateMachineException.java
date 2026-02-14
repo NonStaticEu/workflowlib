@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 
 public class StateMachineException extends RuntimeException {
 
-  private final Serializable id;
+  private final Serializable machineId;
   private final TransitionReport<?> report;
 
-  public StateMachineException(Serializable id, TransitionReport<?> report) {
+  public StateMachineException(Serializable machineId, TransitionReport<?> report) {
     super(validate(report));
-    this.id = id;
+    this.machineId = machineId;
     this.report = report;
   }
 
@@ -30,20 +30,20 @@ public class StateMachineException extends RuntimeException {
     return result.getException();
   }
 
-  public Serializable getId() {
-    return id;
+  public Serializable getMachineId() {
+    return machineId;
   }
 
   public TransitionReport<?> getReport() {
     return report;
   }
 
-  public WorkflowLink<?> getErroredTransition() {
+  public WorkflowLink<?> getFailedTransition() {
     var results = report.getResults();
     return results.get(results.size()-1).getLink();
   }
 
-  public List<WorkflowLink<?>> getSuccessfulTransition() {
+  public List<WorkflowLink<?>> getSuccessfulTransitions() {
     var results = report.getResults();
     return results.subList(0, results.size()-1).stream().map(TransitionResult::getLink).collect(Collectors.toList());
   }

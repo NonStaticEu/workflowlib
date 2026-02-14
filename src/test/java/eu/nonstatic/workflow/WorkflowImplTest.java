@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class WorkflowImplTest {
 
-  private TestWorkflow createWorkflowWithConstructor() {
+  private static TestWorkflow createWorkflowWithConstructor() {
     return new TestWorkflow("test",
         new WorkflowStep<>(null, List.of(
             new WorkflowStep<>("state1"),
@@ -22,7 +22,7 @@ class WorkflowImplTest {
     );
   }
 
-  private TestWorkflow createWorkflowWithBuilder() {
+  private static TestWorkflow createWorkflowWithBuilder() {
     var steps = WorkflowStep.<String>builder(null)
         .next("state1")
         .next(WorkflowStep.builder("state2")

@@ -1,6 +1,8 @@
 package eu.nonstatic.workflow;
 
-public class TransitionResult<S> {
+import java.io.Serializable;
+
+public class TransitionResult<S> implements Serializable {
 
   private final WorkflowLink<S> link;
   private final Exception exception;
@@ -18,11 +20,23 @@ public class TransitionResult<S> {
     return link;
   }
 
+  public S getFrom() {
+    return link.getFrom();
+  }
+
+  public S getTo() {
+    return link.getTo();
+  }
+
   public Exception getException() {
     return exception;
   }
 
   public boolean isSuccessful() {
     return exception == null;
+  }
+
+  public boolean isFailed() {
+    return !isSuccessful();
   }
 }

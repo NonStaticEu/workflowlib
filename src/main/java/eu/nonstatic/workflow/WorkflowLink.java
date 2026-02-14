@@ -1,12 +1,13 @@
 package eu.nonstatic.workflow;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class WorkflowLink<S> {
+public class WorkflowLink<S> implements Serializable {
 
   private final S from;
   private final S to;
-  private final WorkflowListener<S> listener; // called when reaching this node's state
+  private final transient WorkflowListener<S> listener; // called when reaching this node's state
 
   public WorkflowLink(S from, S to, WorkflowListener<S> listener) {
     this.from = from;
