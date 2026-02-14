@@ -195,6 +195,8 @@ class WorkflowNodeTest {
     assertEquals("catch2", t1.getTo());
     assertEquals(listener, t1.getListener());
 
+    assertTrue(path.contains("state2"));
+    assertTrue(path.contains("catch2"));
     assertEquals(1, path.indexOf("catch2"));
 
     assertEquals("[state2, catch2]", path.toString());

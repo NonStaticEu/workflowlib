@@ -47,7 +47,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
   }
 
   public Optional<N> peek(S state) {
-    return (state != null) ? Optional.ofNullable(nodes.get(state)) : Optional.empty(); // chain may have a null key for workflows having several starts, but it's not associated to a state per se.
+    return (state != null) ? Optional.ofNullable(nodes.get(state)) : Optional.empty(); // chain may have a null key for workflows having several starts, but it's not associated with a state per se.
   }
 
   @Override

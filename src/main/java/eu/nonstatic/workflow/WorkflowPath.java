@@ -1,5 +1,6 @@
 package eu.nonstatic.workflow;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.stream.Stream;
 /**
  * Instances of this class are meant to be immutable
  */
-public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
+public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Serializable {
 
   private final List<WorkflowLink<S>> links;
 
@@ -45,7 +46,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>> {
   }
 
   public boolean contains(S state) {
-    return links.stream().anyMatch(step -> step.getTo().equals(state));
+    return stream().anyMatch(step -> step.getTo().equals(state));
   }
 
   public Stream<WorkflowLink<S>> stream() {
