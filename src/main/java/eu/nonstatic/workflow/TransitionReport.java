@@ -29,9 +29,10 @@ public class TransitionReport<S> implements Iterable<TransitionResult<S>>, Seria
 
     int failed = 0;
     var rit = results.iterator();
+    TransitionResult<S> result = null;
     for (WorkflowLink<S> link : path) {
       if(rit.hasNext()) {
-        var result = rit.next();
+        result = rit.next();
         if(result.getLink().equals(link)) {
           if(result.isFailed()) {
             failed++;
@@ -43,6 +44,8 @@ public class TransitionReport<S> implements Iterable<TransitionResult<S>>, Seria
         throw new IllegalArgumentException("results is shorter than path but has no failed element");
       } else if(failed > 1) {
         throw new IllegalArgumentException("results is shorter than path but has multiple failed elements");
+      } else if(result.isSuccessful()) {
+        throw new IllegalArgumentException("results is shorter than path but the failed element is not the last");
       }
     }
   }

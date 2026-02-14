@@ -14,7 +14,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Seriali
 
   private final List<WorkflowLink<S>> links;
 
-  private WorkflowPath(List<WorkflowLink<S>> links) {
+  WorkflowPath(List<WorkflowLink<S>> links) {
     this.links = List.copyOf(links);
   }
 
