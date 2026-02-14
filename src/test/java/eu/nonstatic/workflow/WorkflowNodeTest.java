@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -182,22 +183,29 @@ class WorkflowNodeTest {
   @Test
   void should_get_path() {
     WorkflowPath<String> path = workflow.path("state1", "catch2").get();
-    assertEquals(2, path.size());
+    int pathLength = path.size();
+    assertEquals(2, pathLength);
     Iterator<WorkflowLink<String>> it = path.iterator();
 
-    var t0 = it.next();
-    assertEquals("state1", t0.getFrom());
-    assertEquals("state2", t0.getTo());
-    assertNull(t0.getListener());
+    var link0 = it.next();
+    assertEquals("state1", link0.getFrom());
+    assertEquals("state2", link0.getTo());
+    assertNull(link0.getListener());
 
-    var t1 = it.next();
-    assertEquals("state2", t1.getFrom());
-    assertEquals("catch2", t1.getTo());
-    assertEquals(listener, t1.getListener());
+    var link1 = it.next();
+    assertEquals("state2", link1.getFrom());
+    assertEquals("catch2", link1.getTo());
+    assertEquals(listener, link1.getListener());
+
+    assertSame(link1, path.get(1));
+    assertThrows(IndexOutOfBoundsException.class, () -> path.get(pathLength));
 
     assertTrue(path.contains("state2"));
     assertTrue(path.contains("catch2"));
     assertEquals(1, path.indexOf("catch2"));
+    assertEquals(-1, path.indexOf("state999"));
+    assertTrue(path.contains(link0));
+    assertFalse(path.contains(new WorkflowLink<>("state42", "state69", null)));
 
     assertEquals("[state2, catch2]", path.toString());
   }

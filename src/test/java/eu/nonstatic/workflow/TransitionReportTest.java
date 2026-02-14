@@ -1,10 +1,12 @@
 package eu.nonstatic.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class TransitionReportTest {
@@ -161,6 +163,28 @@ class TransitionReportTest {
 
     TransitionReport<String> report = new TransitionReport<>(path, results);
     assertEquals(2, report.getResults().size());
+  }
+
+  @Test
+  void should_iterate_on_report() {
+    WorkflowLink<String> link1 = new WorkflowLink<>("state1", "state2", null);
+    WorkflowLink<String> link2 = new WorkflowLink<>("state2", "state3", null);
+    WorkflowLink<String> link3 = new WorkflowLink<>("state3", "state4", null);
+
+    WorkflowPath<String> path = createPath(link1, link2, link3);
+    TransitionResult<String> tr1 = new TransitionResult<>(link1);
+    TransitionResult<String> tr2 = new TransitionResult<>(link2);
+    TransitionResult<String> tr3 = new TransitionResult<>(link3);
+
+    var results = List.of(tr1, tr2, tr3);
+    var report = new TransitionReport<>(path, results);
+
+    assertEquals(results, report.stream().collect(Collectors.toList()));
+    var it = report.iterator();
+    assertEquals(tr1, it.next());
+    assertEquals(tr2, it.next());
+    assertEquals(tr3, it.next());
+    assertFalse(it.hasNext());
   }
 
   @SafeVarargs
