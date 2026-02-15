@@ -21,7 +21,7 @@ public class StateMachineException extends RuntimeException {
     while(it.hasNext()) {
       result = it.next();
       if(result.isSuccessful() ^ it.hasNext()) {
-        throw new IllegalStateException("Only the last result must be in error");
+        throw new IllegalStateException("Only the last result must be failed");
       }
     }
     if(result == null) {

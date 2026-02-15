@@ -18,9 +18,8 @@ import org.junit.jupiter.api.Test;
 class StateMachineTest {
 
   TestListener listener1 = new TestListener();
-  TestListener listener3 = new TestListener();
-  TestListener listener1loop = new TestListener();
   TestListener listener2 = new TestListener();
+  TestListener listener3 = new TestListener();
   TestListener listener5 = new TestListener();
   TestListener listener6 = new TestListener();
   TestListener listener7 = new TestListener() {
@@ -31,28 +30,27 @@ class StateMachineTest {
   };
 
   TestWorkflow workflow = new TestWorkflow("test",
-      builder("state1").listener(listener1)
+      builder("state1")
         .next(builder("state2")
             .next(builder("state6").listener(listener6)
                 .next(builder("state7").listener(listener7)
-                    .next("state8")
+                    .nextff("state8")
                     .build())
                 .build())
             .build())
         .next(builder("state3").listener(listener3)
-          .next("state4")
-          .next("state1", listener1loop) //FIXME we're lucky this is this one that triggers and not listener1 => should be conflict
-          .next("state2", listener2)
-          .next("state5", listener5)
+          .nextff("state4")
+          .nextff("state1", listener1)
+          .nextff("state2", listener2)
+          .nextff("state5", listener5)
           .build()
         ).build());
 
   @BeforeEach
   void beforeEach() {
     listener1.reset();
-    listener1loop.reset();
-    listener3.reset();
     listener2.reset();
+    listener3.reset();
     listener5.reset();
     listener6.reset();
     listener7.reset();
@@ -95,29 +93,26 @@ class StateMachineTest {
     assertNull(result.getException());
     assertTrue(result.isSuccessful());
 
-    assertTrue(listener1.isEmpty());
     assertTrue(listener3.isEmpty());
-    assertEquals(1, listener1loop.size());
-    assertEquals("state3", listener1loop.get(0).from);
-    assertEquals("state1", listener1loop.get(0).to);
+    assertEquals(1, listener1.size());
+    assertEquals("state3", listener1.get(0).from);
+    assertEquals("state1", listener1.get(0).to);
     assertTrue(listener2.isEmpty());
 
     TransitionContext context = new TransitionContext();
     machine.transition("state3", context);
-    assertTrue(listener1.isEmpty());
     assertEquals(1, listener3.size());
     assertEquals(1, (int)context.get("calls"));
     assertEquals("state1", listener3.get(0).from);
     assertEquals("state3", listener3.get(0).to);
-    assertEquals(1, listener1loop.size());
+    assertEquals(1, listener1.size());
     assertTrue(listener2.isEmpty());
 
     machine.transition("state1", null);
-    assertTrue(listener1.isEmpty());
     assertEquals(1, listener3.size());
-    assertEquals(2, listener1loop.size());
-    assertEquals("state3", listener1loop.get(1).from);
-    assertEquals("state1", listener1loop.get(1).to);
+    assertEquals(2, listener1.size());
+    assertEquals("state3", listener1.get(1).from);
+    assertEquals("state1", listener1.get(1).to);
     assertTrue(listener2.isEmpty());
   }
 
@@ -137,7 +132,7 @@ class StateMachineTest {
     assertEquals(1, listener3.size());
     assertEquals("state1", listener3.get(0).from);
     assertEquals("state3", listener3.get(0).to);
-    assertTrue(listener1loop.isEmpty());
+    assertTrue(listener1.isEmpty());
     assertTrue(listener2.isEmpty());
     assertEquals(1, listener5.size());
     assertEquals("state3", listener5.get(0).from);
@@ -152,7 +147,7 @@ class StateMachineTest {
     assertTrue(transition2.isEmpty());
     assertTrue(listener1.isEmpty());
     assertTrue(listener3.isEmpty());
-    assertTrue(listener1loop.isEmpty());
+    assertTrue(listener1.isEmpty());
     assertTrue(listener2.isEmpty());
     assertTrue(listener5.isEmpty());
   }

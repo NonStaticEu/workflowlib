@@ -77,17 +77,17 @@ public class WorkflowStep<S> {
       return this;
     }
 
-    public Builder<S> next(S state) {
-      return next(state, null);
-    }
-
-    public Builder<S> next(S state, WorkflowListener<S> listener) {
-      return next(new WorkflowStep<>(state, listener));
-    }
-
     public Builder<S> next(WorkflowStep<S> next) {
       this.next.add(Objects.requireNonNull(next));
       return this;
+    }
+
+    public Builder<S> nextff(S state) {
+      return nextff(state, null);
+    }
+
+    public Builder<S> nextff(S state, WorkflowListener<S> listener) {
+      return next(new WorkflowStep<>(state, listener));
     }
 
     public WorkflowStep<S> build() {

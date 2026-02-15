@@ -15,15 +15,18 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {
-    N firstNode = toNode(0, start, null);
+    N firstNode = toNode(0, null, start);
     this.start = (firstNode.getState() == null)
         ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toUnmodifiableList())
         : List.of(firstNode);
   }
 
-  private N toNode(int level, WorkflowStep<S> step, N previousNode) {
+  private N toNode(int level, N previousNode, WorkflowStep<S> step) {
     if(step.getState() == null && level != 0) {
-      throw new IllegalArgumentException("Only the first step may have a null state.");
+      throw new IllegalArgumentException("Only the first step may have a null state");
+    }
+    if(level == 0 && step.getListener() != null) {
+      throw new IllegalArgumentException("The first step cannot have a listener");
     }
 
     N node = nodes.computeIfAbsent(step.getState(), this::newNode);
@@ -33,7 +36,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     }
 
     for (WorkflowStep<S> nextStep : step.getNext()) {
-      node.next.add(new WorkFlowTransition<>(toNode(level+1, nextStep, node), nextStep.getListener()));
+      node.next.add(new WorkFlowTransition<>(toNode(level+1, node, nextStep), nextStep.getListener()));
     }
 
     return node;
@@ -74,7 +77,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     WorkflowPath.Builder<S> increasedPath = partialPath.prepend(nodeTo);
     return nodeTo.getPrevious()
         .stream()
-        .filter(previous -> !partialPath.contains(previous.getNode().getState())) // there shouldn't be loops but you never know CAUTION contains
+        .filter(previous -> !partialPath.contains(previous.getNode().getState())) // in case there are loops
         .flatMap(previous -> buildPath(previous.getNode(), increasedPath).stream())
         .collect(Collectors.toList());
   }

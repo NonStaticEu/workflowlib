@@ -233,8 +233,8 @@ class WorkflowNodeTest {
   @Test
   void should_accept_null_start() {
     WorkflowStep<String> steps = WorkflowStep.<String>builder(null)
-        .next("state1")
-        .next("state2")
+        .nextff("state1")
+        .nextff("state2")
         .build();
 
     assertDoesNotThrow(() -> new TestWorkflow("test", steps));
@@ -243,9 +243,9 @@ class WorkflowNodeTest {
   @Test
   void should_not_accept_null_next() {
     WorkflowStep<String> steps = WorkflowStep.builder("state1")
-        .next("state2")
-        .next((String) null)
-        .next("state4")
+        .nextff("state2")
+        .nextff(null)
+        .nextff("state4")
         .build();
 
     assertThrows(IllegalArgumentException.class, () -> new TestWorkflow("test", steps));

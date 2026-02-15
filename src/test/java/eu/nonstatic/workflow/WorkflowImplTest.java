@@ -24,10 +24,10 @@ class WorkflowImplTest {
 
   private static TestWorkflow createWorkflowWithBuilder() {
     var steps = WorkflowStep.<String>builder(null)
-        .next("state1")
+        .nextff("state1")
         .next(WorkflowStep.builder("state2")
-            .next("catch1")
-            .next("state3")
+            .nextff("catch1")
+            .nextff("state3")
             .build()
         ).build();
     return new TestWorkflow("test", steps);
