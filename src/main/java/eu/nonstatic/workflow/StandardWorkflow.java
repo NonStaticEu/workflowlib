@@ -10,7 +10,7 @@ public class StandardWorkflow<S> extends AbstractWorkflow<S, StandardWorkflowNod
 
   protected StandardWorkflow(Serializable id, WorkflowMetas metas, WorkflowStep<S> start) {
     super(start);
-    this.id = Objects.requireNonNull(id);
+    this.id = Objects.requireNonNull(id, "This workflow must have an id");
     this.metas = metas;
   }
 
@@ -34,6 +34,10 @@ public class StandardWorkflow<S> extends AbstractWorkflow<S, StandardWorkflowNod
 
   public static <T> Builder<T> builder() {
     return new Builder<>();
+  }
+
+  public static <T> Builder<T> builder(Serializable id) {
+    return new Builder<T>().id(id);
   }
 
   @Override
