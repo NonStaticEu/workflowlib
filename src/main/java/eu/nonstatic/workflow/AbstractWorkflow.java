@@ -2,6 +2,7 @@ package eu.nonstatic.workflow;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -12,6 +13,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
   private final List<N> start;
   private final HashMap<S, N> nodes = new HashMap<>();
+  private final int hashCode;
 
 
   protected AbstractWorkflow(WorkflowStep<S> start) {
@@ -19,6 +21,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     this.start = (firstNode.getState() == null)
         ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toUnmodifiableList())
         : List.of(firstNode);
+    this.hashCode = Objects.hashCode(this.start); // No need to add the nodes, they are cascaded from the start node(s). Also we're immutable, so no need to recalculate it at runtime.
   }
 
   private N toNode(int level, N previousNode, WorkflowStep<S> step) {
@@ -90,13 +93,13 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    AbstractWorkflow<?, ?> that = (AbstractWorkflow<?, ?>) o;
-    return Objects.equals(start, that.start);
+    AbstractWorkflow<S, N> that = (AbstractWorkflow<S, N>) o;
+    return WorkflowNode.equalsLoopSafe(start, that.start, new HashSet<>());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(start); // No need to add the nodes, they are contained in the start node
+    return hashCode;
   }
 
   @Override

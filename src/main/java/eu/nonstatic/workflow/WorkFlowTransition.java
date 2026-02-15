@@ -1,6 +1,8 @@
 package eu.nonstatic.workflow;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class WorkFlowTransition<S, N extends WorkflowNode<S, N>> {
 
@@ -32,5 +34,26 @@ public class WorkFlowTransition<S, N extends WorkflowNode<S, N>> {
   @Override
   public int hashCode() {
     return Objects.hash(node, listener);
+  }
+
+
+
+  static <S, N extends WorkflowNode<S, N>> boolean equalsLoopSafe(List<WorkFlowTransition<S, N>> trans1, List<WorkFlowTransition<S, N>> trans2, Set<S> seenStates) {
+    if(trans1.size() != trans2.size()) {
+      return false;
+    }
+
+    var it2 = trans2.iterator();
+    for (WorkFlowTransition<S, N> node1 : trans1) {
+      if(!equalsloopSafe(node1, it2.next(), seenStates)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static <S, N extends WorkflowNode<S, N>> boolean equalsloopSafe(WorkFlowTransition<S, N> trans1, WorkFlowTransition<S, N> trans2, Set<S> seenStates) {
+    return Objects.equals(trans1.listener, trans2.listener) && WorkflowNode.equalsLoopSafe(trans1.node, trans2.node, seenStates);
   }
 }

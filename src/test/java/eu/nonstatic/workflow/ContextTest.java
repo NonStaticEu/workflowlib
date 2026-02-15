@@ -148,4 +148,19 @@ class ContextTest {
     String result = metas.get("key");
     assertEquals("meta", result);
   }
+
+  @Test
+  void should_comply_with_equals_hashcode() {
+    Context context1 = new Context();
+    context1.put("key", "value");
+    Context context2 = new Context();
+    context2.put("key", "value");
+
+    assertEquals(context1, context2);
+    assertEquals(context1.hashCode(), context2.hashCode());
+
+    context2.put("otherKey", "otherValue");
+    assertNotEquals(context1, context2);
+    assertNotEquals(context1.hashCode(), context2.hashCode());
+  }
 }

@@ -31,4 +31,18 @@ public class Context {
   public void clear() {
     delegate.clear();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Context context = (Context) o;
+    return Objects.equals(delegate, context.delegate);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(delegate);
+  }
 }

@@ -3,9 +3,8 @@ package eu.nonstatic.workflow;
 import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, N>> implements WorkflowNode<S, N> {
@@ -51,74 +50,6 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
     return next.stream().filter(trans -> trans.getNode().isOn(state)).findAny();
   }
 
-  @Override
-  public boolean isOn(S state) {
-    return this.state != null && this.state.equals(state);
-  }
-
-  @Override
-  public boolean isAfter(S state) {
-    return isAfter(state, list(this.state));
-  }
-
-  @Override
-  public boolean isAfter(S state, Collection<S> visited) {
-    return previous.stream()
-        .filter(trans -> !visited.contains(trans.getNode().state))
-        .anyMatch(trans -> {
-          N node = trans.getNode();
-          return node.isOn(state) || node.isAfter(state, concat(visited, node.state));
-        });
-  }
-
-  @Override
-  public boolean isAfterOrOn(S state) {
-    return isOn(state) || isAfter(state);
-  }
-
-  @Override
-  public boolean isBefore(S state) {
-    return isBefore(state, list(this.state));
-  }
-
-  @Override
-  public boolean isBefore(S state, Collection<S> visited) {
-    return next.stream()
-        .filter(trans -> !visited.contains(trans.getNode().state))
-        .anyMatch(trans -> {
-          N node = trans.getNode();
-          return node.isOn(state) || node.isBefore(state, concat(visited, node.state));
-        });
-  }
-
-  @Override
-  public boolean isBeforeOrOn(S state) {
-    return isOn(state) || isBefore(state);
-  }
-
-  @Override
-  public boolean isTwoWay(S state) {
-    return getNext(state).flatMap(trans -> trans.getNode().getPrevious(this.state)).isPresent()
-        || getPrevious(state).flatMap(trans -> trans.getNode().getNext(this.state)).isPresent();
-  }
-
-  @Override
-  public boolean isTerminal() {
-    return next.isEmpty();
-  }
-
-  private static <S> List<S> list(S state) {
-    var list = new ArrayList<S>(1); // must be null-tolerant, so no List.of(state)
-    list.add(state);
-    return list;
-  }
-
-  private static <S> List<S> concat(Collection<S> states, S extra) {
-    var concat = new ArrayList<S>(states.size() + 1); // must be null-tolerant
-    concat.addAll(states);
-    concat.add(extra);
-    return concat;
-  }
 
   /**
    * Caution when using, because comparing two different terminal states will generate an IllegalArgumentException
@@ -147,13 +78,13 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    AbstractWorkflowNode<?,?> that = (AbstractWorkflowNode<?,?>) o;
-    return Objects.equals(state, that.state);
+    WorkflowNode<S, N> that = (WorkflowNode<S, N>) o;
+    return WorkflowNode.equalsLoopSafe(this, that, new HashSet<>());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(state);
+    return WorkflowNode.hashCodeLoopSafe(this);
   }
 
   @Override
