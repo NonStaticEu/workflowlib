@@ -84,7 +84,7 @@ public class StateMachine<S, N extends WorkflowNode<S, N>, E> {
     var fromMap = this.transitions.get(Objects.requireNonNull(event));
     if(fromMap != null) {
       StateMachineTransition<S, E> transition = fromMap.get(state);
-      if(transition != null) {
+      if(transition != null && transition.test(context)) {
         TransitionReport<S> report = transition(transition.getTo(), context);
         transition.getLink().fire(context); // that listener is only triggered on the last step of the path, and after the workflow's "internal" listeners have been invoked
         return report;

@@ -302,12 +302,31 @@ class StateMachineTest {
   }
 
   @Test
+  void should_not_transition_conditionally() {
+    TestListener listener = new TestListener();
+    var machine = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state2", "state6", Event.E2, c -> false, listener))
+        .add(new StateMachineTransition<>("state3", "state4", Event.E3))
+        .add(new StateMachineTransition<>("state3", "state5", Event.E1))
+        .state("state2")
+        .build();
+
+    var report = machine.send(Event.E2);
+    assertTrue(report.getPath().isEmpty());
+    assertTrue(report.getResults().isEmpty());
+
+    assertEquals(0, listener.size());
+    assertEquals(0, listener6.size());
+  }
+
+  @Test
   void should_transition_multiple_step() {
     TestListener listener13 = new TestListener();
     TestListener listener14 = new TestListener();
     var machine = StateMachine.<String, StandardWorkflowNode<String>, Event>builder(UUID.randomUUID(), workflow)
         .add(StateMachineTransition.<String, Event>builder().from("state1").to("state2").event(Event.E1).build())
-        .add(StateMachineTransition.<String, Event>builder().from("state1").to("state3").event(Event.E2).listener(listener13).build())
+        .add(StateMachineTransition.<String, Event>builder().from("state1").to("state3").event(Event.E2).condition(c -> true).listener(listener13).build())
         .add(StateMachineTransition.<String, Event>builder().from("state1").to("state4").event(Event.E4).listener(listener14).build())
         .add(StateMachineTransition.<String, Event>builder().from("state3").to("state4").event(Event.E3).build())
         .add(StateMachineTransition.<String, Event>builder().from("state3").to("state5").event(Event.E1).build())
