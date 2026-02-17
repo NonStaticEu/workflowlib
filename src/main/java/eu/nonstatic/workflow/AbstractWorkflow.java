@@ -19,7 +19,7 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
   protected AbstractWorkflow(WorkflowStep<S> start) {
     N firstNode = toNode(0, null, start);
     this.start = (firstNode.getState() == null)
-        ? firstNode.getNext().stream().map(WorkFlowTransition::getNode).collect(Collectors.toUnmodifiableList())
+        ? firstNode.getNext().stream().map(WorkFlowArrow::getNode).collect(Collectors.toUnmodifiableList())
         : List.of(firstNode);
     this.hashCode = Objects.hashCode(this.start); // No need to add the nodes, they are cascaded from the start node(s). Also we're immutable, so no need to recalculate it at runtime.
   }
@@ -35,11 +35,11 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
     N node = nodes.computeIfAbsent(step.getState(), this::newNode);
 
     if (previousNode != null) {
-      node.previous.add(new WorkFlowTransition<>(previousNode, step.getListener()));
+      node.previous.add(new WorkFlowArrow<>(previousNode, step.getListener()));
     }
 
     for (WorkflowStep<S> nextStep : step.getNext()) {
-      node.next.add(new WorkFlowTransition<>(toNode(level+1, node, nextStep), nextStep.getListener()));
+      node.next.add(new WorkFlowArrow<>(toNode(level+1, node, nextStep), nextStep.getListener()));
     }
 
     return node;
@@ -63,9 +63,9 @@ public abstract class AbstractWorkflow<S, N extends AbstractWorkflowNode<S, N>> 
 
   public Optional<WorkflowPath<S>> path(S from, S to) {
     if(!exists(from)) {
-      throw new NoSuchElementException("Unknown from value: " + from);
+      throw new NoSuchElementException("Unknown from state: " + from);
     }
-    N nodeTo = peek(to).orElseThrow(() -> new NoSuchElementException("Unknown to value: " + to));
+    N nodeTo = peek(to).orElseThrow(() -> new NoSuchElementException("Unknown to state: " + to));
     return buildPath(nodeTo, new WorkflowPath.Builder<>(from))
         .stream()
         .min(Comparator.comparingInt(WorkflowPath.Builder::size))

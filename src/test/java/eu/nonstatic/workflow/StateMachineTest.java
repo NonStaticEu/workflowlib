@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.nonstatic.workflow.StateMachine.Builder;
 import java.io.Serializable;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -58,10 +59,15 @@ class StateMachineTest {
 
   @Test
   void should_not_create_machine() {
-    assertThrows(IllegalArgumentException.class, () -> new StateMachine<>(null, workflow, "state1"));
+    Builder<String, StandardWorkflowNode<String>, Object> builder1 = StateMachine.builder(null, workflow).state("state1");
+    assertThrows(IllegalArgumentException.class, builder1::build);
+
     UUID id = UUID.randomUUID();
-    assertThrows(IllegalArgumentException.class, () -> new StateMachine<>(id, null, "state1"));
-    assertThrows(NoSuchElementException.class, () -> new StateMachine<>(id, workflow, "state999"));
+    Builder<Object, ?, Object> builder2 = StateMachine.builder(id, null).state("state1");
+    assertThrows(IllegalArgumentException.class, builder2::build);
+
+    Builder<String, StandardWorkflowNode<String>, Object> builder3 = StateMachine.builder(id, workflow).state("state999");
+    assertThrows(NoSuchElementException.class, builder3::build);
   }
 
   @Test
@@ -165,7 +171,7 @@ class StateMachineTest {
 
   @Test
   void should_fail_on_unset_state() {
-    var machine = assertDoesNotThrow(() -> new StateMachine<>(UUID.randomUUID(), workflow, null));
+    var machine = assertDoesNotThrow(() -> StateMachine.builder(UUID.randomUUID(), workflow).build());
     assertThrows(IllegalStateException.class, () -> machine.transition("state2", null));
   }
 
@@ -239,5 +245,127 @@ class StateMachineTest {
     TransitionResult<String> tr3 = results.get(3);
     assertEquals("state7", tr3.getFrom());
     assertEquals("state8", tr3.getTo());
+  }
+
+  enum Event {
+    E1, E2, E3, E4
+  }
+
+  @Test
+  void should_return_empty_report_when_event_not_in_transitions() {
+    var machine = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state2", "state6", Event.E2))
+        .add(new StateMachineTransition<>("state3", "state4", Event.E3))
+        .add(new StateMachineTransition<>("state3", "state5", Event.E1))
+        .state("state1")
+        .build();
+
+    var report = machine.send(Event.E4);
+    assertTrue(report.isEmpty());
+  }
+
+  @Test
+  void should_return_empty_report_when_current_state_not_in_event_transitions() {
+    var machine = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state2", "state6", Event.E2))
+        .add(new StateMachineTransition<>("state3", "state4", Event.E3))
+        .add(new StateMachineTransition<>("state3", "state5", Event.E1))
+        .state("state6")
+        .build();
+
+    var report = machine.send(Event.E1);
+    assertTrue(report.isEmpty());
+  }
+
+  @Test
+  void should_transition_one_step() {
+    TestListener listener = new TestListener();
+    var machine = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state2", "state6", Event.E2))
+        .add(new StateMachineTransition<>("state3", "state4", Event.E3, listener))
+        .add(new StateMachineTransition<>("state3", "state5", Event.E1))
+        .state("state3")
+        .build();
+
+    var report = machine.send(Event.E3);
+    assertEquals(1, report.getPath().size());
+    assertEquals("state3", report.getResults().get(0).getFrom());
+    assertEquals("state4", report.getResults().get(0).getTo());
+    assertEquals("state4", machine.getState());
+
+    assertEquals(1, listener.size());
+    assertEquals("state3", listener.get(0).from);
+    assertEquals("state4", listener.get(0).to);
+  }
+
+  @Test
+  void should_transition_multiple_step() {
+    TestListener listener13 = new TestListener();
+    TestListener listener14 = new TestListener();
+    var machine = StateMachine.<String, StandardWorkflowNode<String>, Event>builder(UUID.randomUUID(), workflow)
+        .add(StateMachineTransition.<String, Event>builder().from("state1").to("state2").event(Event.E1).build())
+        .add(StateMachineTransition.<String, Event>builder().from("state1").to("state3").event(Event.E2).listener(listener13).build())
+        .add(StateMachineTransition.<String, Event>builder().from("state1").to("state4").event(Event.E4).listener(listener14).build())
+        .add(StateMachineTransition.<String, Event>builder().from("state3").to("state4").event(Event.E3).build())
+        .add(StateMachineTransition.<String, Event>builder().from("state3").to("state5").event(Event.E1).build())
+        .state("state1")
+        .build();
+
+    var report = machine.send(Event.E4);
+    assertEquals(2, report.getPath().size());
+    assertEquals("state1", report.getResults().get(0).getFrom());
+    assertEquals("state3", report.getResults().get(0).getTo());
+    assertEquals("state3", report.getResults().get(1).getFrom());
+    assertEquals("state4", report.getResults().get(1).getTo());
+    assertEquals("state4", machine.getState());
+
+    assertTrue(listener13.isEmpty());
+
+    assertEquals(1, listener14.size());
+    assertEquals("state1", listener14.get(0).from); // NOT state3, the listener applies to the whole span of the transition
+    assertEquals("state4", listener14.get(0).to);
+
+
+    assertEquals(1, listener3.size());
+    assertEquals("state1", listener3.get(0).from);
+    assertEquals("state3", listener3.get(0).to);
+  }
+
+  @Test
+  void should_fail_when_duplicate_event_and_from_state() {
+    Builder<String, StandardWorkflowNode<String>, Object> builder = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state3", "state4", Event.E3))
+        .add(new StateMachineTransition<>("state1", "state3", Event.E1));
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, builder::build);
+
+    assertEquals("Duplicate transition from state1 for event E1", ex.getMessage());
+  }
+
+  @Test
+  void should_fail_when_transition_state_not_in_workflow() {
+    UUID id = UUID.randomUUID();
+    Builder<String, StandardWorkflowNode<String>, Object> builder = StateMachine.builder(id, workflow)
+        .add(new StateMachineTransition<>("state1", "state999", Event.E1));
+
+    NoSuchElementException ex = assertThrows(NoSuchElementException.class, builder::build);
+
+    assertEquals("State doesn't belong to workflow TestWorkflow : Unknown to state: state999; id: " + id, ex.getMessage());
+  }
+
+  @Test
+  void should_fail_when_impossible_transition() {
+    Builder<String, StandardWorkflowNode<String>, Object> builder = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state6", "state3", Event.E3))
+        .add(new StateMachineTransition<>("state1", "state3", Event.E1));
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, builder::build);
+
+    assertEquals("Impossible path between: state6 and: state3", ex.getMessage());
   }
 }

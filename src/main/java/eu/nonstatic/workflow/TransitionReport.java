@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 public class TransitionReport<S> implements Iterable<TransitionResult<S>>, Serializable {
 
+  private static final TransitionReport EMPTY = new TransitionReport<>(new WorkflowPath<>(List.of()), List.of());
+
   private final WorkflowPath<S> path;
   private final List<TransitionResult<S>> results;
 
@@ -48,6 +50,10 @@ public class TransitionReport<S> implements Iterable<TransitionResult<S>>, Seria
         throw new IllegalArgumentException("results is shorter than path but the failed element is not the last");
       }
     }
+  }
+
+  public static <S> TransitionReport<S> empty() {
+    return EMPTY;
   }
 
   public WorkflowPath<S> getPath() {

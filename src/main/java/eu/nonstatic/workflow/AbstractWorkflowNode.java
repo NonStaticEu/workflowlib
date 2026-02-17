@@ -12,14 +12,14 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   private static final int PREVIOUS_NEXT_DEFAULT_CAPACITY = 4;
 
   final S state; // may be null only in the *first* node of the chain if the workflow starts with 2 different steps
-  final List<WorkFlowTransition<S, N>> previous;
-  final List<WorkFlowTransition<S, N>> next;
+  final List<WorkFlowArrow<S, N>> previous;
+  final List<WorkFlowArrow<S, N>> next;
 
   protected AbstractWorkflowNode(S state) {
     this(state, new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY), new ArrayList<>(PREVIOUS_NEXT_DEFAULT_CAPACITY));
   }
 
-  protected AbstractWorkflowNode(S state, List<WorkFlowTransition<S, N>> previous, List<WorkFlowTransition<S, N>> next) {
+  protected AbstractWorkflowNode(S state, List<WorkFlowArrow<S, N>> previous, List<WorkFlowArrow<S, N>> next) {
     this.state = state;
     this.previous = previous;
     this.next = next;
@@ -31,22 +31,22 @@ public abstract class AbstractWorkflowNode<S, N extends AbstractWorkflowNode<S, 
   }
 
   @Override
-  public List<WorkFlowTransition<S, N>> getPrevious() {
+  public List<WorkFlowArrow<S, N>> getPrevious() {
     return unmodifiableList(previous);
   }
 
   @Override
-  public Optional<WorkFlowTransition<S, N>> getPrevious(S state) {
+  public Optional<WorkFlowArrow<S, N>> getPrevious(S state) {
     return previous.stream().filter(trans -> trans.getNode().isOn(state)).findAny();
   }
 
   @Override
-  public List<WorkFlowTransition<S, N>> getNext() {
+  public List<WorkFlowArrow<S, N>> getNext() {
     return unmodifiableList(next);
   }
 
   @Override
-  public Optional<WorkFlowTransition<S, N>> getNext(S state) {
+  public Optional<WorkFlowArrow<S, N>> getNext(S state) {
     return next.stream().filter(trans -> trans.getNode().isOn(state)).findAny();
   }
 

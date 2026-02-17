@@ -21,14 +21,14 @@ public interface Workflow<S, N extends WorkflowNode<S, N>> {
     return StandardWorkflow.builder();
   }
 
-  default StateMachine<S, N> toMachine(S state) {
+  default StateMachine<S, N, ?> toMachine(S state) {
     return toMachine(null, state);
   }
 
-  default StateMachine<S, N> toMachine(Serializable id, S state) {
+  default StateMachine<S, N, ?> toMachine(Serializable id, S state) {
     if(id == null) {
       id = UUID.randomUUID().toString();
     }
-    return new StateMachine<>(id, this, state);
+    return StateMachine.builder(id, this).state(state).build();
   }
 }

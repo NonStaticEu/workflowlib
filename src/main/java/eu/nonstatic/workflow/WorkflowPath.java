@@ -105,7 +105,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Seriali
       for (WorkflowNode<S, ?> node : nodes) {
         S linkFrom = (prev == null) ? this.from : prev.getState();
         S linkTo = node.getState();
-        WorkflowListener<S> listener = node.getPrevious(linkFrom).map(WorkFlowTransition::getListener).orElse(null);
+        WorkflowListener<S> listener = node.getPrevious(linkFrom).map(WorkFlowArrow::getListener).orElse(null);
         WorkflowLink<S> link = new WorkflowLink<>(linkFrom, linkTo, listener);
         links.add(link);
         prev = node;

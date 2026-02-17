@@ -15,11 +15,11 @@ public interface WorkflowNode<S, N extends WorkflowNode<S, N>> extends Comparabl
 
   S getState();
 
-  List<WorkFlowTransition<S, N>> getPrevious();
-  Optional<WorkFlowTransition<S, N>> getPrevious(S state);
+  List<WorkFlowArrow<S, N>> getPrevious();
+  Optional<WorkFlowArrow<S, N>> getPrevious(S state);
 
-  List<WorkFlowTransition<S, N>> getNext();
-  Optional<WorkFlowTransition<S, N>> getNext(S state);
+  List<WorkFlowArrow<S, N>> getNext();
+  Optional<WorkFlowArrow<S, N>> getNext(S state);
 
 
   default boolean isOn(S state) {
@@ -110,7 +110,7 @@ public interface WorkflowNode<S, N extends WorkflowNode<S, N>> extends Comparabl
     }
 
     seenStates.add(state1);
-    return WorkFlowTransition.equalsLoopSafe(node1.getNext(), node2.getNext(), seenStates);
+    return WorkFlowArrow.equalsLoopSafe(node1.getNext(), node2.getNext(), seenStates);
   }
 
   static <S, N extends WorkflowNode<S, N>> int hashCodeLoopSafe(WorkflowNode<S, N> node) {
@@ -125,9 +125,9 @@ public interface WorkflowNode<S, N extends WorkflowNode<S, N>> extends Comparabl
 
   static <S, N extends WorkflowNode<S, N>> void unwindLinks(WorkflowNode<S, N> node, Set<WorkflowLink<S>> links) {
     S from = node.getState();
-    for (WorkFlowTransition<S, N> trans : node.getNext()) {
-      N nextNode = trans.getNode();
-      if(links.add(new WorkflowLink<>(from, nextNode.getState(), trans.getListener()))) {
+    for (WorkFlowArrow<S, N> arrow : node.getNext()) {
+      N nextNode = arrow.getNode();
+      if(links.add(new WorkflowLink<>(from, nextNode.getState(), arrow.getListener()))) {
         unwindLinks(nextNode, links);
       }
     }

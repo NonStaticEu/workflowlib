@@ -10,8 +10,8 @@ public class WorkflowLink<S> implements Serializable {
   private final transient WorkflowListener<S> listener; // called when reaching this node's state
 
   public WorkflowLink(S from, S to, WorkflowListener<S> listener) {
-    this.from = from;
-    this.to = to;
+    this.from = Objects.requireNonNull(from);
+    this.to = Objects.requireNonNull(to);
     this.listener = listener;
   }
 
