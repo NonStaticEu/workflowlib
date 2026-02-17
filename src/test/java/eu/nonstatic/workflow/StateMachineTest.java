@@ -178,8 +178,12 @@ class StateMachineTest {
 
   @Test
   void should_fail_on_unknown_state() {
+    assertThrows(NoSuchElementException.class, () -> workflow.toMachine("state69"));
+
     var machine = workflow.toMachine("state2");
     assertThrows(NoSuchElementException.class, () -> machine.transition("state42", null));
+
+    assertThrows(NoSuchElementException.class, () -> machine.setState("state99"));
   }
 
   @Test

@@ -18,13 +18,10 @@ public class StateMachine<S, N extends WorkflowNode<S, N>> {
     if(workflow == null) {
       throw new IllegalArgumentException("Workflow must not be null; id: " + id);
     }
-    if(state != null && !workflow.exists(state)) {
-      throw new NoSuchElementException("State " + state + " doesn't belong to workflow " + workflow + "; id: " + id);
-    }
 
     this.id = id;
     this.workflow = workflow;
-    this.state = state;
+    setState(state);
   }
 
   public Serializable getId() {
@@ -40,6 +37,9 @@ public class StateMachine<S, N extends WorkflowNode<S, N>> {
   }
 
   public void setState(S state) {
+    if(state != null && !workflow.exists(state)) {
+      throw new NoSuchElementException("State " + state + " doesn't belong to workflow " + workflow + "; id: " + id);
+    }
     this.state = state;
   }
 
