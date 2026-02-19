@@ -28,6 +28,10 @@ public class TransitionResult<S> implements Serializable {
     return link.getTo();
   }
 
+  public boolean isEnd(S state) {
+    return link.isEnd(state);
+  }
+
   public Exception getException() {
     return exception;
   }
@@ -38,5 +42,10 @@ public class TransitionResult<S> implements Serializable {
 
   public boolean isFailed() {
     return !isSuccessful();
+  }
+
+  @Override
+  public String toString() {
+    return "[" + getFrom() + ", " + getTo() + ", " + isSuccessful() + "]";
   }
 }

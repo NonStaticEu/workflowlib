@@ -42,7 +42,7 @@ public class StateMachineTransition<S, E> {
     return getLink().getTo();
   }
 
-  public boolean test(TransitionContext context) {
+  public boolean testGuard(TransitionContext context) {
     return guard == null || guard.test(context);
   }
 

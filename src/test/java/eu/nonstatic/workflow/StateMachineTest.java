@@ -3,6 +3,7 @@ package eu.nonstatic.workflow;
 import static eu.nonstatic.workflow.WorkflowStep.builder;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,6 +48,10 @@ class StateMachineTest {
           .build()
         ).build());
 
+  enum Event {
+    E1, E2, E3, E4
+  }
+
   @BeforeEach
   void beforeEach() {
     listener1.reset();
@@ -88,14 +93,28 @@ class StateMachineTest {
   }
 
   @Test
-  void should_transition() {
+  void should_transition_backwards_ish() {
     var machine = workflow.toMachine("state3");
 
-    var transition = machine.transition("state1", null);
-    assertEquals(1, transition.getPath().size());
-    assertEquals(1, transition.getResults().size());
+    var report = machine.transition("state1", null);
+    assertEquals("state1", machine.getState());
 
-    var result = transition.getResults().get(0);
+    assertEquals(1, report.getPath().size());
+    assertEquals(1, report.getResults().size());
+    assertEquals("state3", report.getInitialState());
+    assertEquals("state1", report.getFinalState());
+    assertEquals("state1", report.getTargetState());
+    assertFalse(report.isEmpty());
+    assertTrue(report.isExecuted());
+    assertTrue(report.isSuccessful());
+    assertFalse(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
+
+
+    var result = report.getResults().get(0);
     assertNull(result.getException());
     assertTrue(result.isSuccessful());
 
@@ -126,11 +145,24 @@ class StateMachineTest {
   void should_transition_path() {
     var machine = workflow.toMachine("state1");
 
-    var transition = machine.transition("state5", null);
-    assertEquals(2, transition.getPath().size());
-    assertEquals(2, transition.getResults().size());
+    var report = machine.transition("state5", null);
+    assertEquals("state5", machine.getState());
 
-    var result = transition.getResults().get(0);
+    assertEquals(2, report.getPath().size());
+    assertEquals(2, report.getResults().size());
+    assertEquals("state1", report.getInitialState());
+    assertEquals("state5", report.getFinalState());
+    assertEquals("state5", report.getTargetState());
+    assertFalse(report.isEmpty());
+    assertTrue(report.isExecuted());
+    assertTrue(report.isSuccessful());
+    assertFalse(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
+
+    var result = report.getResults().get(0);
     assertNull(result.getException());
     assertTrue(result.isSuccessful());
 
@@ -163,9 +195,11 @@ class StateMachineTest {
   void should_call_listener_on_right_link() {
     var machine = workflow.toMachine("state1");
 
-    var transition = machine.transition("state2", null);
-    assertEquals(1, transition.getPath().size());
-    assertTrue(transition.getResults().get(0).isSuccessful());
+    var report = machine.transition("state2", null);
+    assertEquals(1, report.getPath().size());
+    assertTrue(report.getResults().get(0).isSuccessful());
+    assertEquals("state1", report.getInitialState());
+    assertEquals("state2", report.getFinalState());
     assertTrue(listener2.isEmpty());
   }
 
@@ -193,13 +227,66 @@ class StateMachineTest {
   }
 
   @Test
-  void should_fail_directly() {
+  void should_fail_on_first_error() {
     var machine = workflow.toMachine("state1");
     // path is state1 -> state2 -> state6 -> state7 (failed)
     var ex = assertThrows(StateMachineException.class, () -> machine.transition("state8", null));
     assertEquals(machine.getId(), ex.getMachineId());
-    assertEquals(4, ex.getReport().getPath().size());
-    assertEquals(3, ex.getReport().getResults().size());
+    assertEquals("state6", machine.getState());
+
+    TransitionReport<?> report = ex.getReport();
+    assertEquals(4, report.getPath().size());
+    assertEquals(3, report.getResults().size());
+    assertEquals("state1", report.getInitialState());
+    assertEquals(machine.getState(), report.getFinalState());
+    assertEquals("state8", report.getTargetState());
+    assertFalse(report.isEmpty());
+    assertTrue(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertTrue(report.isPartialPath());
+    assertFalse(report.isCompletePath());
+
+    List<WorkflowLink<?>> successfulTransitions = ex.getSuccessfulTransitions();
+    assertEquals(2, successfulTransitions.size());
+    WorkflowLink<?> tr0 = successfulTransitions.get(0);
+    assertEquals("state1", tr0.getFrom());
+    assertEquals("state2", tr0.getTo());
+    WorkflowLink<?> tr1 = successfulTransitions.get(1);
+    assertEquals("state2", tr1.getFrom());
+    assertEquals("state6", tr1.getTo());
+    assertEquals(1, listener6.size());
+
+    WorkflowLink<?> failedTransition = ex.getFailedTransition();
+    assertEquals("state6", failedTransition.getFrom());
+    assertEquals("state7", failedTransition.getTo());
+    assertTrue(listener7.isEmpty());
+  }
+
+  @Test
+  void should_have_correct_flags_when_last_step_fails() {
+    var machine = workflow.toMachine("state1");
+    // path is state1 -> state2 -> state6 -> state7 (failed)
+    var ex = assertThrows(StateMachineException.class, () -> machine.transition("state7", null));
+    assertEquals(machine.getId(), ex.getMachineId());
+    assertEquals("state6", machine.getState());
+
+    TransitionReport<?> report = ex.getReport();
+    assertEquals(3, report.getPath().size());
+    assertEquals(3, report.getResults().size());
+    assertEquals("state1", report.getInitialState());
+    assertEquals(machine.getState(), report.getFinalState());
+    assertEquals("state7", report.getTargetState());
+    assertFalse(report.isEmpty());
+    assertTrue(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertTrue(report.isPartialPath());
+    assertFalse(report.isCompletePath()); // NOT true at all!
 
     List<WorkflowLink<?>> successfulTransitions = ex.getSuccessfulTransitions();
     assertEquals(2, successfulTransitions.size());
@@ -222,8 +309,21 @@ class StateMachineTest {
     var machine = workflow.toMachine("state1");
     // path is state1 -> state2 -> state6 -> state7 (failed) -> state8
     var report = assertDoesNotThrow(() -> machine.transition("state8", null, true));
+    assertEquals("state8", machine.getState());
+
     assertEquals(4, report.getPath().size());
     assertEquals(4, report.getResults().size());
+    assertEquals("state1", report.getInitialState());
+    assertEquals("state8", report.getFinalState());
+    assertEquals("state8", report.getTargetState());
+    assertFalse(report.isEmpty());
+    assertTrue(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
 
     List<TransitionResult<String>> results = report.getResults();
     assertEquals(4, results.size());
@@ -247,9 +347,6 @@ class StateMachineTest {
     assertEquals("state8", tr3.getTo());
   }
 
-  enum Event {
-    E1, E2, E3, E4
-  }
 
   @Test
   void should_return_empty_report_when_event_not_in_transitions() {
@@ -262,7 +359,18 @@ class StateMachineTest {
         .build();
 
     var report = machine.send(Event.E4);
+    assertEquals("state1", machine.getState());
+    assertEquals("state1", report.getInitialState());
+    assertEquals(report.getInitialState(), report.getFinalState());
+    assertNull(report.getTargetState());
     assertTrue(report.isEmpty());
+    assertFalse(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertFalse(report.isTransitioned());
+    assertTrue(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertFalse(report.isCompletePath());
   }
 
   @Test
@@ -276,7 +384,18 @@ class StateMachineTest {
         .build();
 
     var report = machine.send(Event.E1);
+    assertEquals("state6", machine.getState());
+    assertEquals("state6", report.getInitialState());
+    assertEquals(report.getInitialState(), report.getFinalState());
+    assertNull(report.getTargetState());
     assertTrue(report.isEmpty());
+    assertFalse(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertFalse(report.isTransitioned());
+    assertTrue(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertFalse(report.isCompletePath());
   }
 
   @Test
@@ -290,8 +409,20 @@ class StateMachineTest {
         .state("state3")
         .build();
 
+
     var report = machine.send(Event.E3);
+    assertEquals("state4", machine.getState());
     assertEquals(1, report.getPath().size());
+    assertEquals("state3", report.getInitialState());
+    assertEquals("state4", report.getTargetState());
+    assertEquals(report.getTargetState(), report.getFinalState());
+    assertTrue(report.isExecuted());
+    assertTrue(report.isSuccessful());
+    assertFalse(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
     assertEquals("state3", report.getResults().get(0).getFrom());
     assertEquals("state4", report.getResults().get(0).getTo());
     assertEquals("state4", machine.getState());
@@ -302,7 +433,40 @@ class StateMachineTest {
   }
 
   @Test
-  void should_not_transition_conditionally() {
+  void should_self_transition() {
+    TestListener listener = new TestListener();
+    var machine = StateMachine.builder(UUID.randomUUID(), workflow)
+        .add(new StateMachineTransition<>("state1", "state2", Event.E1))
+        .add(new StateMachineTransition<>("state2", "state6", Event.E2))
+        .add(new StateMachineTransition<>("state3", "state3", Event.E3, listener))
+        .add(new StateMachineTransition<>("state3", "state5", Event.E1))
+        .state("state3")
+        .build();
+
+    var report = machine.send(Event.E3);
+    assertEquals("state3", machine.getState());
+    assertTrue(report.getPath().isEmpty());
+    assertTrue(report.getResults().isEmpty());
+    assertEquals("state3", report.getInitialState());
+    assertEquals(report.getInitialState(), report.getFinalState());
+    assertEquals("state3", report.getTargetState());
+    assertTrue(report.isExecuted());
+    assertTrue(report.isSuccessful());
+    assertFalse(report.isFailed());
+    assertFalse(report.isTransitioned());
+    assertTrue(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
+
+    assertEquals(1, listener.size());
+    assertEquals("state3", listener.get(0).from);
+    assertEquals("state3", listener.get(0).to);
+
+    assertTrue(listener3.isEmpty());
+  }
+
+  @Test
+  void should_not_transition_with_guard() {
     TestListener listener = new TestListener();
     var machine = StateMachine.builder(UUID.randomUUID(), workflow)
         .add(new StateMachineTransition<>("state1", "state2", Event.E1))
@@ -313,8 +477,19 @@ class StateMachineTest {
         .build();
 
     var report = machine.send(Event.E2);
-    assertTrue(report.getPath().isEmpty());
+    assertEquals("state2", machine.getState());
+    assertFalse(report.getPath().isEmpty());
     assertTrue(report.getResults().isEmpty());
+    assertEquals("state2", report.getInitialState());
+    assertEquals(report.getInitialState(), report.getFinalState());
+    assertEquals("state6", report.getTargetState());
+    assertFalse(report.isExecuted());
+    assertFalse(report.isSuccessful());
+    assertTrue(report.isFailed());
+    assertFalse(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertFalse(report.isCompletePath());
 
     assertEquals(0, listener.size());
     assertEquals(0, listener6.size());
@@ -334,12 +509,22 @@ class StateMachineTest {
         .build();
 
     var report = machine.send(Event.E4);
+    assertEquals("state4", machine.getState());
     assertEquals(2, report.getPath().size());
+    assertEquals("state1", report.getInitialState());
+    assertEquals("state4", report.getTargetState());
+    assertEquals(machine.getState(), report.getFinalState());
+    assertTrue(report.isExecuted());
+    assertTrue(report.isSuccessful());
+    assertFalse(report.isFailed());
+    assertTrue(report.isTransitioned());
+    assertFalse(report.isSelfPath());
+    assertFalse(report.isPartialPath());
+    assertTrue(report.isCompletePath());
     assertEquals("state1", report.getResults().get(0).getFrom());
     assertEquals("state3", report.getResults().get(0).getTo());
     assertEquals("state3", report.getResults().get(1).getFrom());
     assertEquals("state4", report.getResults().get(1).getTo());
-    assertEquals("state4", machine.getState());
 
     assertTrue(listener13.isEmpty());
 

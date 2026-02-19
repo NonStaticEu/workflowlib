@@ -12,13 +12,28 @@ import java.util.stream.Stream;
  */
 public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Serializable {
 
+  private final S from;
+  private final S to;
   private final List<WorkflowLink<S>> links;
 
-  WorkflowPath(List<WorkflowLink<S>> links) {
+  WorkflowPath(S from, List<WorkflowLink<S>> links) {
+    if(!links.isEmpty() && !links.get(0).getFrom().equals(from)) {
+      throw new IllegalArgumentException(String.format("The given from: %s and the first link from field: %s must match", from, links.get(0).getFrom()));
+    }
+    this.from = from;
+    this.to = links.isEmpty() ? from : links.get(links.size()-1).getTo();
     this.links = List.copyOf(links);
   }
 
-  public WorkflowLink<S> get(int index) {
+  public S getFrom() {
+    return from;
+  }
+
+  public S getTo() {
+    return to;
+  }
+
+  public WorkflowLink<S> getLink(int index) {
     return links.get(index);
   }
 
@@ -35,6 +50,10 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Seriali
       i++;
     }
     return -1;
+  }
+
+  public static <S> WorkflowPath<S> empty(S from) {
+    return new WorkflowPath<>(from, List.of());
   }
 
   public boolean isEmpty() {
@@ -62,7 +81,6 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Seriali
   public String toString() {
     return links.stream().map(WorkflowLink::getTo).collect(Collectors.toList()).toString();
   }
-
 
 
   static final class Builder<S> {
@@ -110,7 +128,7 @@ public final class WorkflowPath<S> implements Iterable<WorkflowLink<S>>, Seriali
         links.add(link);
         prev = node;
       }
-      return new WorkflowPath<>(links);
+      return new WorkflowPath<>(from, links);
     }
   }
 }

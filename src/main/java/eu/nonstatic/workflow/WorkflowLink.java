@@ -27,6 +27,10 @@ public class WorkflowLink<S> implements Serializable {
     return listener;
   }
 
+  public boolean isEnd(S state) {
+    return to.equals(state) || from.equals(state);
+  }
+
   public void fire(TransitionContext context) {
     if(listener != null) {
       listener.invoke(from, to, context);
@@ -47,5 +51,11 @@ public class WorkflowLink<S> implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(from, to, listener);
+  }
+
+
+  @Override
+  public String toString() {
+    return "[" + from + ", " + to + "]";
   }
 }

@@ -197,8 +197,8 @@ class WorkflowNodeTest {
     assertEquals("catch2", link1.getTo());
     assertEquals(listener, link1.getListener());
 
-    assertSame(link1, path.get(1));
-    assertThrows(IndexOutOfBoundsException.class, () -> path.get(pathLength));
+    assertSame(link1, path.getLink(1));
+    assertThrows(IndexOutOfBoundsException.class, () -> path.getLink(pathLength));
 
     assertTrue(path.contains("state2"));
     assertTrue(path.contains("catch2"));
